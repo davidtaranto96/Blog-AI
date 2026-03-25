@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude: de 0 a Agentes</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0d0f12; --bg2:#13161b; --bg3:#1a1e26;
+  --border:rgba(255,255,255,0.07); --border2:rgba(255,255,255,0.13);
+  --text:#e8eaf0; --text2:#8b90a0; --text3:#555b6e;
+  --accent:#c8f060; --accent2:#7c6fff; --accent3:#ff6b6b; --accent4:#60d4f0;
+  --orange:#ff9f45;
+  --tag-bg:rgba(200,240,96,0.08); --tag-border:rgba(200,240,96,0.2);
+  --radius:10px; --radius-lg:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;line-height:1.7;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:.4;}
+
+.wrapper{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 24px 80px;}
+
+/* ── HERO ── */
+.hero{padding:80px 0 60px;border-bottom:1px solid var(--border);margin-bottom:48px;}
+.hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:28px;}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:var(--tag-bg);border:1px solid var(--tag-border);border-radius:100px;padding:4px 14px;font-size:12px;color:var(--accent);letter-spacing:.08em;font-family:'DM Mono',monospace;}
+.hero-badge::before{content:'●';font-size:8px;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.author-badge{display:inline-flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--border2);border-radius:100px;padding:6px 14px 6px 6px;font-size:12px;color:var(--text2);font-family:'DM Mono',monospace;cursor:pointer;text-decoration:none;transition:border-color .2s,color .2s;}
+.author-badge:hover{border-color:var(--accent2);color:var(--text);}
+.author-avatar{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent4));display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#fff;}
+h1{font-family:'DM Serif Display',serif;font-size:clamp(40px,7vw,78px);line-height:1.05;letter-spacing:-.02em;margin-bottom:18px;}
+h1 em{font-style:italic;color:var(--accent);}
+.hero-sub{color:var(--text2);font-size:17px;max-width:600px;margin-bottom:36px;font-weight:300;}
+.hero-stats{display:flex;gap:36px;flex-wrap:wrap;}
+.stat{display:flex;flex-direction:column;gap:2px;}
+.stat-num{font-family:'DM Mono',monospace;font-size:26px;color:var(--accent);font-weight:500;}
+.stat-label{font-size:11px;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;}
+
+/* ── TOOLBAR ── */
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px;}
+.search-wrap{position:relative;flex:1;min-width:200px;max-width:360px;}
+.search-input{width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);padding:9px 36px 9px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border-color .2s;}
+.search-input::placeholder{color:var(--text3);}
+.search-input:focus{border-color:var(--accent2);}
+.search-icon{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none;font-size:13px;}
+.search-clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--text3);cursor:pointer;font-size:14px;display:none;background:none;border:none;padding:2px 4px;}
+.search-clear.visible{display:block;}
+
+.filter-group{display:flex;gap:6px;flex-wrap:wrap;}
+.filter-btn{padding:7px 14px;border:1px solid var(--border2);background:var(--bg2);color:var(--text2);border-radius:var(--radius);font-size:12px;font-family:'DM Mono',monospace;cursor:pointer;transition:all .2s;letter-spacing:.04em;}
+.filter-btn:hover{border-color:var(--border2);color:var(--text);}
+.filter-btn.active{border-color:var(--accent2);background:rgba(124,111,255,.12);color:var(--accent2);}
+.filter-btn.fav-toggle.active{border-color:var(--orange);background:rgba(255,159,69,.1);color:var(--orange);}
+
+.search-count{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);padding:4px 0;display:none;}
+.search-count.visible{display:block;}
+
+/* ── NAV TABS ── */
+.nav-tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:40px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:6px;}
+.tab-btn{padding:8px 18px;border:none;cursor:pointer;background:transparent;color:var(--text2);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;transition:all .2s;white-space:nowrap;}
+.tab-btn:hover{color:var(--text);background:rgba(255,255,255,.04);}
+.tab-btn.active{background:var(--accent);color:#0d0f12;}
+
+/* ── SECTIONS ── */
+.section{display:none;}
+.section.active{display:block;}
+.section-header{margin-bottom:40px;padding-bottom:24px;border-bottom:1px solid var(--border);}
+.eyebrow{font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px;}
+.section-header h2{font-family:'DM Serif Display',serif;font-size:clamp(26px,4vw,40px);line-height:1.1;letter-spacing:-.01em;}
+.section-header p{color:var(--text2);margin-top:10px;max-width:640px;font-size:15px;}
+
+/* ── CARDS ── */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:40px;}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px;transition:border-color .2s,transform .2s;position:relative;overflow:hidden;}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent2),transparent);opacity:0;transition:opacity .3s;}
+.card:hover{border-color:var(--border2);transform:translateY(-2px);}
+.card:hover::before{opacity:1;}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;}
+.card-tag{display:inline-block;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:3px 10px;border-radius:100px;font-weight:500;}
+.fav-btn{background:none;border:none;cursor:pointer;font-size:16px;opacity:.4;transition:opacity .2s,transform .2s;padding:2px 4px;line-height:1;}
+.fav-btn:hover{opacity:.8;}
+.fav-btn.active{opacity:1;transform:scale(1.15);}
+.card h3{font-size:15px;font-weight:600;margin-bottom:8px;color:var(--text);}
+.card p{font-size:13px;color:var(--text2);line-height:1.6;}
+.card-link{cursor:pointer;}
+
+.tag-fundamentos{background:rgba(124,111,255,.12);color:var(--accent2);border:1px solid rgba(124,111,255,.2);}
+.tag-web{background:rgba(96,212,240,.1);color:var(--accent4);border:1px solid rgba(96,212,240,.2);}
+.tag-marketing{background:rgba(255,107,107,.1);color:var(--accent3);border:1px solid rgba(255,107,107,.2);}
+.tag-agentes{background:var(--tag-bg);color:var(--accent);border:1px solid var(--tag-border);}
+.tag-productividad{background:rgba(255,159,69,.1);color:var(--orange);border:1px solid rgba(255,159,69,.2);}
+.tag-conceptos{background:rgba(255,255,255,.06);color:var(--text2);border:1px solid var(--border);}
+
+/* ── ACCORDION ── */
+.accordion{border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:12px;transition:border-color .2s;}
+.accordion.fav-highlight{border-color:rgba(255,159,69,.3);}
+.accordion[data-hidden="true"]{display:none;}
+.acc-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;cursor:pointer;background:var(--bg2);transition:background .15s;gap:12px;}
+.acc-header:hover{background:var(--bg3);}
+.acc-title{display:flex;align-items:center;gap:12px;flex:1;min-width:0;}
+.acc-num{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);min-width:26px;flex-shrink:0;}
+.acc-label{font-size:14px;font-weight:500;white-space:normal;}
+.acc-actions{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.acc-fav{background:none;border:none;cursor:pointer;font-size:15px;opacity:.35;transition:opacity .2s,transform .15s;padding:3px;line-height:1;}
+.acc-fav:hover{opacity:.8;}
+.acc-fav.active{opacity:1;transform:scale(1.2);}
+.acc-icon{width:22px;height:22px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text2);flex-shrink:0;transition:transform .25s,background .2s;}
+.accordion.open .acc-icon{transform:rotate(45deg);background:var(--accent);color:#0d0f12;border-color:var(--accent);}
+.acc-type-badge{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:100px;flex-shrink:0;}
+.badge-cmd{background:rgba(200,240,96,.08);color:var(--accent);border:1px solid rgba(200,240,96,.2);}
+.badge-prompt{background:rgba(124,111,255,.08);color:var(--accent2);border:1px solid rgba(124,111,255,.2);}
+.badge-concepto{background:rgba(96,212,240,.08);color:var(--accent4);border:1px solid rgba(96,212,240,.2);}
+
+.acc-body{max-height:0;overflow:hidden;transition:max-height .35s cubic-bezier(.4,0,.2,1);background:var(--bg);}
+.accordion.open .acc-body{max-height:3000px;}
+.acc-content{padding:22px 20px 26px;border-top:1px solid var(--border);}
+
+/* ── CONTENT ELEMENTS ── */
+.concept-box{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;margin:14px 0;font-size:13.5px;color:var(--text2);line-height:1.7;}
+.concept-box strong{color:var(--text);}
+.concept-box.highlight{border-color:rgba(200,240,96,.2);background:rgba(200,240,96,.04);}
+.concept-box.purple{border-color:rgba(124,111,255,.2);background:rgba(124,111,255,.04);}
+.concept-box.blue{border-color:rgba(96,212,240,.2);background:rgba(96,212,240,.04);}
+.concept-box.red{border-color:rgba(255,107,107,.2);background:rgba(255,107,107,.04);}
+.concept-box.orange{border-color:rgba(255,159,69,.2);background:rgba(255,159,69,.04);}
+
+.analogy{display:flex;gap:12px;align-items:flex-start;background:rgba(124,111,255,.05);border:1px solid rgba(124,111,255,.14);border-radius:var(--radius);padding:13px 15px;margin:13px 0;font-size:13px;color:var(--text2);}
+.analogy .icon{font-size:17px;flex-shrink:0;margin-top:2px;}
+.analogy strong{color:var(--text);display:block;margin-bottom:3px;}
+
+.code-block{background:#0a0c10;border:1px solid var(--border2);border-radius:var(--radius);padding:13px 16px;margin:11px 0;font-family:'DM Mono',monospace;font-size:12px;color:#a8d8a8;overflow-x:auto;position:relative;line-height:1.7;}
+.code-block .comment{color:var(--text3);}
+.code-block .cmd{color:var(--accent);}
+.copy-btn{position:absolute;top:9px;right:9px;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-family:'DM Mono',monospace;font-size:10px;padding:3px 10px;border-radius:6px;cursor:pointer;transition:all .15s;}
+.copy-btn:hover,.copy-btn.copied{background:var(--accent);color:#0d0f12;border-color:var(--accent);}
+
+.prompt-block{background:rgba(124,111,255,.04);border:1px solid rgba(124,111,255,.15);border-left:3px solid var(--accent2);border-radius:0 var(--radius) var(--radius) 0;padding:13px 16px;margin:13px 0;font-size:13px;color:var(--text2);position:relative;}
+.prompt-label{font-family:'DM Mono',monospace;font-size:10px;color:var(--accent2);letter-spacing:.1em;text-transform:uppercase;margin-bottom:7px;display:block;}
+.prompt-copy{position:absolute;top:9px;right:9px;background:var(--bg3);border:1px solid rgba(124,111,255,.2);color:var(--accent2);font-family:'DM Mono',monospace;font-size:10px;padding:3px 10px;border-radius:6px;cursor:pointer;transition:all .15s;}
+.prompt-copy:hover,.prompt-copy.copied{background:var(--accent2);color:#fff;border-color:var(--accent2);}
+
+.steps{counter-reset:step;margin:14px 0;}
+.step{display:flex;gap:14px;align-items:flex-start;margin-bottom:14px;}
+.step-num{counter-increment:step;min-width:26px;height:26px;background:var(--bg3);border:1px solid var(--border2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:11px;color:var(--text2);flex-shrink:0;margin-top:2px;}
+.step-num::before{content:counter(step);}
+.step-body{font-size:13.5px;color:var(--text2);}
+.step-body strong{color:var(--text);}
+
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:13px 0;}
+.col-box{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:13px 15px;font-size:13px;}
+.col-box .col-title{font-size:10px;font-family:'DM Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:7px;}
+.col-box ul{padding-left:15px;color:var(--text2);}
+.col-box li{margin-bottom:3px;}
+.col-box.green .col-title{color:#70d870;}
+.col-box.red .col-title{color:var(--accent3);}
+
+.table-wrap{overflow-x:auto;margin:14px 0;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{background:var(--bg3);padding:9px 13px;text-align:left;color:var(--text2);font-weight:500;font-size:10px;letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid var(--border2);}
+td{padding:9px 13px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:top;}
+tr:last-child td{border-bottom:none;}
+td:first-child{color:var(--text);font-weight:500;}
+td code{font-family:'DM Mono',monospace;font-size:11px;background:var(--bg3);padding:2px 6px;border-radius:4px;color:var(--accent);}
+
+.pill-row{display:flex;flex-wrap:wrap;gap:7px;margin:11px 0;}
+.pill{font-family:'DM Mono',monospace;font-size:11px;padding:4px 11px;border-radius:100px;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);}
+.pill.green{background:rgba(112,216,112,.08);border-color:rgba(112,216,112,.2);color:#70d870;}
+.pill.purple{background:rgba(124,111,255,.08);border-color:rgba(124,111,255,.2);color:var(--accent2);}
+.pill.blue{background:rgba(96,212,240,.08);border-color:rgba(96,212,240,.2);color:var(--accent4);}
+
+h4{font-size:13.5px;font-weight:600;color:var(--text);margin:18px 0 9px;}
+h4:first-child{margin-top:0;}
+
+.tip{display:flex;gap:9px;align-items:flex-start;font-size:13px;color:var(--text2);background:rgba(255,159,69,.05);border:1px solid rgba(255,159,69,.15);border-radius:var(--radius);padding:11px 13px;margin:11px 0;}
+.tip::before{content:'💡';flex-shrink:0;}
+.warning{display:flex;gap:9px;align-items:flex-start;font-size:13px;color:var(--text2);background:rgba(255,107,107,.05);border:1px solid rgba(255,107,107,.15);border-radius:var(--radius);padding:11px 13px;margin:11px 0;}
+.warning::before{content:'⚠️';flex-shrink:0;}
+
+.protocol-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:18px 0;}
+.protocol-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;text-align:center;}
+.protocol-num{font-family:'DM Mono',monospace;font-size:26px;font-weight:500;margin-bottom:7px;}
+.protocol-name{font-size:13px;font-weight:600;margin-bottom:5px;}
+.protocol-desc{font-size:12px;color:var(--text2);}
+
+.cmd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:9px;margin-top:14px;}
+.cmd-item{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:11px 15px;display:flex;flex-direction:column;gap:3px;}
+.cmd-item code{font-family:'DM Mono',monospace;font-size:12px;color:var(--accent);}
+.cmd-item span{font-size:12px;color:var(--text2);}
+
+/* ── EMPTY STATE ── */
+.empty-state{text-align:center;padding:60px 20px;color:var(--text3);}
+.empty-state .big{font-size:36px;margin-bottom:12px;}
+.empty-state p{font-size:14px;}
+
+/* ── FAVORITOS SECTION ── */
+#fav-empty{display:none;text-align:center;padding:48px 20px;color:var(--text3);}
+#fav-empty .big{font-size:32px;margin-bottom:10px;}
+#fav-empty p{font-size:13px;}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--bg3);border:1px solid var(--border2);border-radius:100px;padding:8px 20px;font-size:13px;color:var(--text);font-family:'DM Mono',monospace;z-index:100;opacity:0;transition:transform .3s,opacity .3s;pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ── FOOTER ── */
+.footer{margin-top:70px;padding-top:28px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;color:var(--text3);font-size:12px;font-family:'DM Mono',monospace;}
+.footer a{color:var(--accent);text-decoration:none;}
+.footer a:hover{text-decoration:underline;}
+
+/* ── SEARCH HIGHLIGHT ── */
+.hl{background:rgba(200,240,96,.2);border-radius:2px;color:var(--accent);}
+
+@media(max-width:640px){
+  .two-col{grid-template-columns:1fr;}
+  .protocol-grid{grid-template-columns:1fr;}
+  .hero-stats{gap:20px;}
+  .nav-tabs{overflow-x:auto;flex-wrap:nowrap;}
+  .toolbar{flex-direction:column;align-items:stretch;}
+  .search-wrap{max-width:100%;}
+}
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-top">
+    <div class="hero-badge">Guía completa · 2026</div>
+    <a class="author-badge" href="https://github.com/davidtaranto96" target="_blank" id="author-link">
+      <div class="author-avatar" id="author-avatar">D</div>
+      <span id="author-name">@davidtaranto96</span>
+    </a>
+  </div>
+  <h1>Claude:<br><em>de 0 a agentes</em></h1>
+  <p class="hero-sub">Todo lo que necesitás saber para pasar de usuario básico a construir agentes que trabajan mientras dormís. Conceptos, comandos, prompts y ejemplos reales.</p>
+  <div class="hero-stats">
+    <div class="stat"><span class="stat-num">6</span><span class="stat-label">Módulos</span></div>
+    <div class="stat"><span class="stat-num">33+</span><span class="stat-label">Herramientas</span></div>
+    <div class="stat"><span class="stat-num">50+</span><span class="stat-label">Comandos</span></div>
+    <div class="stat"><span class="stat-num">30+</span><span class="stat-label">Prompts listos</span></div>
+  </div>
+</div>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <div class="search-wrap">
+    <input class="search-input" id="searchInput" type="text" placeholder="Buscar comando, concepto, prompt...">
+    <span class="search-icon">⌕</span>
+    <button class="search-clear" id="searchClear" title="Limpiar">✕</button>
+  </div>
+  <div class="filter-group">
+    <button class="filter-btn active" data-filter="all" onclick="setFilter('all',this)">Todo</button>
+    <button class="filter-btn" data-filter="cmd" onclick="setFilter('cmd',this)">⚡ Comandos</button>
+    <button class="filter-btn" data-filter="prompt" onclick="setFilter('prompt',this)">✦ Prompts</button>
+    <button class="filter-btn" data-filter="concepto" onclick="setFilter('concepto',this)">◈ Conceptos</button>
+    <button class="filter-btn fav-toggle" data-filter="fav" onclick="setFilter('fav',this)">⭐ Favoritos</button>
+  </div>
+</div>
+<div class="search-count" id="searchCount"></div>
+
+<!-- NAV TABS -->
+<div class="nav-tabs">
+  <button class="tab-btn active" onclick="showSection('inicio')">🗺 Inicio</button>
+  <button class="tab-btn" onclick="showSection('fundamentos')">01 · Fundamentos</button>
+  <button class="tab-btn" onclick="showSection('web')">02 · Diseño Web</button>
+  <button class="tab-btn" onclick="showSection('marketing')">03 · Marketing</button>
+  <button class="tab-btn" onclick="showSection('agentes')">04 · Agentes</button>
+  <button class="tab-btn" onclick="showSection('productividad')">05 · Productividad</button>
+  <button class="tab-btn" onclick="showSection('referencia')">⚡ Referencia</button>
+</div>
+
+<!-- ══════════════════════════════════════ INICIO ══════════════════════════════════════ -->
+<div id="sec-inicio" class="section active">
+  <div class="section-header">
+    <div class="eyebrow">Punto de partida</div>
+    <h2>Tu mapa completo de Claude</h2>
+    <p>Esta guía cubre todo el ecosistema de Claude — desde los primeros trucos hasta construir agentes que trabajan solos en la nube. Cada sección tiene conceptos explicados con analogías simples, comandos listos para copiar y prompts probados que podés usar el mismo día. Elegí el módulo que más te interesa o leé de corrido.</p>
+  </div>
+
+  <p style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:16px;">6 módulos — elegí por dónde empezar</p>
+
+  <div class="cards">
+    <div class="card card-link" onclick="showSection('fundamentos')">
+      <div class="card-top"><span class="card-tag tag-fundamentos">01 · Fundamentos</span><button class="fav-btn" onclick="event.stopPropagation();toggleCardFav(this,'fav-card-1')" data-id="fav-card-1">⭐</button></div>
+      <h3>Trucos, prompts y configuración</h3>
+      <p>ultrathink, sub-agentes, CLAUDE.md, plugins de contexto y las 5 herramientas open source que transforman Claude Code.</p>
+    </div>
+    <div class="card card-link" onclick="showSection('web')">
+      <div class="card-top"><span class="card-tag tag-web">02 · Diseño Web</span><button class="fav-btn" onclick="event.stopPropagation();toggleCardFav(this,'fav-card-2')" data-id="fav-card-2">⭐</button></div>
+      <h3>Landing pages y diseño profesional</h3>
+      <p>Web Builder, UI/UX Pro Max, réplica de diseños, SEO automático. De cero a deploy en Vercel sin escribir una línea.</p>
+    </div>
+    <div class="card card-link" onclick="showSection('marketing')">
+      <div class="card-top"><span class="card-tag tag-marketing">03 · Marketing</span><button class="fav-btn" onclick="event.stopPropagation();toggleCardFav(this,'fav-card-3')" data-id="fav-card-3">⭐</button></div>
+      <h3>Ads, copy y contenido que convierte</h3>
+      <p>Agencia de ads completa, humanizador de texto, 33 skills de marketing y SEO técnico con 13 comandos.</p>
+    </div>
+    <div class="card card-link" onclick="showSection('agentes')">
+      <div class="card-top"><span class="card-tag tag-agentes">04 · Agentes</span><button class="fav-btn" onclick="event.stopPropagation();toggleCardFav(this,'fav-card-4')" data-id="fav-card-4">⭐</button></div>
+      <h3>Automatización y agentes autónomos</h3>
+      <p>WhatsApp AgentKit, control remoto de tu PC, agentes en la nube 24/7. Plan Mode y arquitectura de agentes.</p>
+    </div>
+    <div class="card card-link" onclick="showSection('productividad')">
+      <div class="card-top"><span class="card-tag tag-productividad">05 · Productividad</span><button class="fav-btn" onclick="event.stopPropagation();toggleCardFav(this,'fav-card-5')" data-id="fav-card-5">⭐</button></div>
+      <h3>Memoria, skills y organización</h3>
+      <p>Obsidian como memoria permanente, Skill Seekers, Cowork y cómo crear tus propios skills.</p>
+    </div>
+    <div class="card card-link" onclick="showSection('referencia')">
+      <div class="card-top"><span class="card-tag tag-conceptos">⚡ Referencia</span><button class="fav-btn" onclick="event.stopPropagation();toggleCardFav(this,'fav-card-6')" data-id="fav-card-6">⭐</button></div>
+      <h3>Todos los comandos en un lugar</h3>
+      <p>Tabla completa de comandos, instalaciones y prompts listos para copiar y usar sin buscar.</p>
+    </div>
+  </div>
+
+  <div style="margin:48px 0 20px;padding-bottom:16px;border-bottom:1px solid var(--border);">
+    <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;">Conceptos base</div>
+    <h3 style="font-family:'DM Serif Display',serif;font-size:clamp(22px,3vw,32px);line-height:1.15;letter-spacing:-.01em;">Entendé cómo funciona Claude antes de arrancar</h3>
+    <p style="color:var(--text2);font-size:14px;margin-top:8px;max-width:620px;">Tres conceptos que aparecen constantemente en toda la guía. Entenderlos bien desde el principio hace que todo lo demás tenga más sentido — y te evita confusión cuando leas sobre MCPs, agentes y automatización.</p>
+  </div>
+
+  <div class="accordion open" id="acc-3modos" data-types="concepto">
+    <div class="acc-header" onclick="toggleAcc('acc-3modos')">
+      <div class="acc-title"><span class="acc-num">01</span><span class="acc-type-badge badge-concepto">concepto</span><span class="acc-label">Chat · Cowork · Claude Code — ¿cuándo usar cada uno?</span></div>
+      <div class="acc-actions"><button class="acc-fav" onclick="event.stopPropagation();toggleFav('acc-3modos',this)" title="Guardar en favoritos">⭐</button><div class="acc-icon">+</div></div>
+    </div>
+    <div class="acc-body"><div class="acc-content">
+      <p style="font-size:13.5px;color:var(--text2);margin-bottom:16px;">Claude no es solo un chatbot. Es un sistema con tres modos de interacción distintos, cada uno pensado para un tipo de trabajo diferente. La mayoría de la gente solo conoce el Chat — pero Cowork y Claude Code son donde pasa la magia real.</p>
+      <div class="table-wrap"><table>
+        <tr><th>Modo</th><th>Qué hace exactamente</th><th>Ideal para</th><th>Requiere</th></tr>
+        <tr><td>💬 Chat<br><small style="color:var(--text3);font-size:11px">claude.ai o app</small></td><td>Conversación directa. Podés subir archivos, PDFs, imágenes. Los resultados aparecen en un panel lateral (Artifacts) que podés descargar o copiar.</td><td>Preguntas, redacción de correos, análisis de documentos, brainstorming, resúmenes</td><td>Solo navegador — plan gratuito disponible</td></tr>
+        <tr><td>🏢 Cowork<br><small style="color:var(--text3);font-size:11px">Claude Desktop</small></td><td>Claude trabaja de forma autónoma mientras hacés otra cosa. Le asignás una tarea, cerrás la ventana y cuando volvés el resultado está listo. También acepta tareas programadas — todos los lunes a las 9am, por ejemplo.</td><td>Reportes automáticos, organización de archivos, monitoreo, tareas recurrentes</td><td>App Desktop + plan Pro ($20/mes)</td></tr>
+        <tr><td>⚡ Claude Code<br><small style="color:var(--text3);font-size:11px">Terminal</small></td><td>Claude vive en tu terminal y tiene acceso real a tu proyecto. Lee y edita archivos, corre tests, hace deploys, instala dependencias. No te dice cómo hacerlo — lo hace directamente en tu codebase.</td><td>Desarrollo, automatización, agentes, skills, deploys, scripts</td><td>Terminal + plan Pro o créditos de API</td></tr>
+      </table></div>
+      <div class="analogy"><span class="icon">💡</span><div><strong>La regla simple:</strong> ¿Necesitás una respuesta rápida? → Chat. ¿Querés que trabaje solo mientras hacés otra cosa? → Cowork. ¿Tenés un proyecto con archivos y código? → Claude Code. No son excluyentes — podés combinarlos según la tarea.</div></div>
+      <div class="tip">Desde la doc oficial: Claude Code funciona en Terminal, VS Code, JetBrains, Desktop app y en la web — todos comparten la misma configuración y CLAUDE.md files.</div>
+    </div></div>
+  </div>
+
+  <div class="accordion" id="acc-protocolos" data-types="concepto">
+    <div class="acc-header" onclick="toggleAcc('acc-protocolos')">
+      <div class="acc-title"><span class="acc-num">02</span><span class="acc-type-badge badge-concepto">concepto</span><span class="acc-label">APIs, MCPs y A2A — los 3 protocolos que mueven la IA</span></div>
+      <div class="acc-actions"><button class="acc-fav" onclick="event.stopPropagation();toggleFav('acc-protocolos',this)" title="Guardar en favoritos">⭐</button><div class="acc-icon">+</div></div>
+    </div>
+    <div class="acc-body"><div class="acc-content">
+      <div class="protocol-grid">
+        <div class="protocol-card"><div class="protocol-num" style="color:var(--accent2)">API</div><div class="protocol-name">Vos ↔ IA</div><div class="protocol-desc">Tu app manda un mensaje, Claude responde. La base de todo.</div></div>
+        <div class="protocol-card"><div class="protocol-num" style="color:var(--accent)">MCP</div><div class="protocol-name">IA ↔ Herramientas</div><div class="protocol-desc">Claude accede directo a tus archivos, calendario, DB — sin que copies y pegues.</div></div>
+        <div class="protocol-card"><div class="protocol-num" style="color:var(--accent4)">A2A</div><div class="protocol-name">IA ↔ IA</div><div class="protocol-desc">Múltiples agentes coordinándose entre ellos sin intervención humana.</div></div>
+      </div>
+      <div class="analogy"><span class="icon">🔑</span><div><strong>La analogía de las llaves:</strong> Sin MCP, Claude está encerrado — le traés toda la info. Con MCP, le das las llaves de tu oficina y va a buscar lo que necesita solo.</div></div>
+      <div class="tip">Para instalar un MCP: <code style="font-family:monospace;font-size:12px;color:var(--accent)">claude mcp add nombre -- npx -y @paquete/mcp</code>. Verificar con <code style="font-family:monospace;font-size:12px;color:var(--accent)">/mcp</code>.</div>
+    </div></div>
+  </div>
+
+  <div class="accordion" id="acc-instalar" data-types="cmd">
+    <div class="acc-header" onclick="toggleAcc('acc-instalar')">
+      <div class="acc-title"><span class="acc-num">03</span><span class="acc-type-badge badge-cmd">comando</span><span class="acc-label">Instalar Claude — el punto de partida</span></div>
+      <div class="acc-actions"><button class="acc-fav" onclick="event.stopPropagation();toggleFav('acc-instalar',this)" title="Guardar en favoritos">⭐</button><div class="acc-icon">+</div></div>
+    </div>
+    <div class="acc-body"><div class="acc-content">
+      <h4>Opción A: Claude Desktop (recomendado para empezar)</h4>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:11px;">La forma más fácil. Descargá la app desde <strong>claude.ai/download</strong>, instalala como cualquier otra app y listo. Incluye Chat, Cowork y Claude Code en una sola interfaz. No requiere configuración técnica.</p>
+      <h4>Opción B: Claude Code directo en la terminal</h4>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:11px;">Para quienes prefieren trabajar desde la terminal. Las instalaciones nativas (curl/irm) se actualizan automáticamente en segundo plano.</p>
+      <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">copiar</button>
+<span class="comment"># macOS / Linux</span>
+<span class="cmd">curl -fsSL https://claude.ai/install.sh | bash</span>
+
+<span class="comment"># Windows (PowerShell)</span>
+<span class="cmd">irm https://claude.ai/install.ps1 | iex</span>
+
+<span class="comment"># Homebrew</span>
+<span class="cmd">brew install --cask claude-code</span></div>
+      <h4>Verificar</h4>
+      <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">copiar</button>
+<span class="cmd">claude --version</span>
+<span class="cmd">claude doctor</span></div>
+      <div class="tip">Evitá <code style="font-family:monospace;color:var(--accent3);font-size:12px">npm install -g @anthropic-ai/claude-code</code> — ese método está deprecado.</div>
+    </div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ FUNDAMENTOS ══════════════════════════════════════ -->
+<div id="sec-fundamentos" class="section">
+  <div class="section-header">
+    <div class="eyebrow">Módulo 01</div>
+    <h2>Fundamentos y trucos clave</h2>
+    <p>Antes de instalar cualquier herramienta o agente, estos son los conceptos que más impacto tienen en el día a día. No son trucos oscuros — son las funciones centrales de Claude Code que la mayoría no usa porque nadie se las explicó bien.</p>
+  </div>
+
+  <div class="accordion open" id="acc-ultrathink" data-types="cmd prompt">
+    <div class="acc-header" onclick="toggleAcc('acc-ultrathink')">
+      <div class="acc-title"><span class="acc-num">01</span><span class="acc-type-badge badge-cmd">comando</span><span class="acc-label">ultrathink + Plan Mode — el combo de arquitecto</span></div>
+      <div class="acc-actions"><button class="acc-fav" onclick="event.stopPropagation();toggleFav('acc-ultrathink',this)">⭐</button><div class="acc-icon">+</div></div>
+    </div>
+    <div class="acc-body"><div class="acc-content">
+      <p style="font-size:13.5px;color:var(--text2);margin-bottom:14px;">Dos herramientas para darle más profundidad al razonamiento de Claude antes de que ejecute cualquier cambio. Son independientes pero funcionan muy bien juntas.</p>
+      <div class="two-col">
+        <div class="concept-box purple"><strong>ultrathink</strong><br>Palabra clave que activa el nivel máximo de razonamiento en Opus 4.6 y Sonnet 4.6. Claude dedica más tokens a pensar el problema antes de responder. La doc oficial confirma que es la forma más rápida de aumentar la profundidad de análisis para una tarea puntual sin cambiar la configuración general.</div>
+        <div class="concept-box blue"><strong>Plan Mode (Shift+Tab)</strong><br>Modo solo-lectura certificado por Anthropic. Claude puede explorar archivos, buscar en tu codebase e investigar en la web — pero no puede crear, editar ni borrar ningún archivo. Es la garantía de que nada se toca hasta que vos aprobés el plan.</div>
+      </div>
+      <h4>Activar</h4>
+      <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">copiar</button>
+<span class="comment"># Dentro de una sesión Claude Code</span>
+<span class="cmd">Shift+Tab</span>            <span class="comment"># alterna Plan Mode / Auto Mode</span>
+<span class="cmd">claude --permission-mode plan</span>  <span class="comment"># iniciar en Plan Mode</span></div>
+      <div class="prompt-block"><span class="prompt-label">Prompt — ultrathink + Plan Mode</span><button class="prompt-copy" onclick="copyPrompt(this)">copiar</button>ultrathink — Analizá mi proyecto completo y creá un plan detallado para [describí tu tarea]. Investigá la estructura actual, identificá todos los archivos que necesitás tocar y dame un plan paso a paso antes de escribir cualquier código.</div>
+      <div class="tip"><strong>Regla de oro:</strong> Si la tarea toca más de 3 archivos, empezá en Plan Mode. Los 30 segundos de planear te ahorran minutos de revertir cambios incorrectos.</div>
+      <div class="concept-box highlight"><strong>Tip avanzado (doc oficial):</strong> Podés configurar Plan Mode como modo default para todos tus proyectos. Agregá esto a <code style="font-size:11px">.claude/settings.json</code>:<br><code style="font-family:monospace;font-size:12px;color:var(--accent)">{"permissions": {"defaultMode": "plan"}}</code><br>También podés abrir el plan en tu editor con Ctrl+G para editarlo antes de que Claude lo ejecute.</div>
+    </div></div>
+  </div>
+
+  <div class="accordion" id="acc-subagentes" data-types="prompt concepto">
+    <div class="acc-header" onclick="toggleAcc('acc-subagentes')">
+      <div class="acc-title"><span class="acc-num">02</span><span class="acc-type-badge badge-concepto">concepto</span><span class="acc-label">Sub-agentes — divide y vencerás</span></div>
+      <div class="acc-actions"><button class="acc-fav" onclick="event.stopPropagation();toggleFav('acc-subagentes',this)">⭐</button><div class="acc-icon">+</div></div>
+    </div>
+    <div class="acc-body"><div class="acc-content">
+      <div class="concept-box highlight"><strong>¿Qué son?</strong> Trabajadores especializados que Claude crea para atacar diferentes partes de tu tarea en paralelo. Uno para frontend, otro para backend, otro para tests — todos al mismo tiempo.</div>
+      <div class="two-col">
+        <div class="col-box green"><div class="col-title">Con sub-agentes</div><ul><li>Trabajan en paralelo</li><li>Cada uno en un área</li><li>Hasta 4x más rápido</li><li>Menos errores de contexto</li></ul></div>
+        <div class="col-box red"><div class="col-title">Sin sub-agentes</div><ul><li>Todo en secuencia</li><li>Mezcla frontend/backend</li><li>Más lento en proyectos grandes</li></ul></div>
+      </div>
+      <div class="prompt-block"><span class="prompt-label">Cómo activar</span><button class="prompt-copy" onclick="copyPrompt(this)">copiar</button>Cuando necesites completar esta tarea, usá sub-agentes para dividir el trabajo. Lanzá agentes separados en paralelo para cada parte independiente — uno para frontend, otro para backend, otro para tests. No hagas todo secuencialmente si podés paralelizar.</div>
+      <div class="concept-box blue"><strong>Consejo oficial de Anthropic:</strong> Podés ver y crear sub-agentes personalizados con el comando <code style="font-size:12px">/agents</code> desde cualquier sesión de Claude Code. Cada agente puede tener su propio system prompt, acceso a herramientas específicas y hasta su propio worktree aislado para trabajar en paralelo sin conflictos.</div>
+    </div></div>
+  </div>
+
+  <div class="accordion" id="acc-claudemd" data-types="cmd concepto">
+    <div class="acc-header" onclick="toggleAcc('acc-claudemd')">
+      <div class="acc-title"><span class="acc-num">03</span><span class="acc-type-badge badge-cmd">comando</span><span class="acc-label">CLAUDE.md — el manual de tu asistente</span></div>
+      <div class="acc-actions"><button class="acc-fav" onclick="event.stopPropagation();toggleFav('acc-claudemd',this)">⭐</button><div class="acc-icon">+</div></div>
+    </div>
+    <div class="acc-body"><div class="acc-content">
+      <div class="analogy"><span class="icon">📋</span><div><strong>Qué es:</strong> Archivo Markdown en la raíz de tu proyecto. Claude lo lee automáticamente al inicio de cada sesión — reglas, contexto, estándares de código, flujos de trabajo del equipo. Según la doc oficial: apuntá a menos de 200 líneas por archivo, usá instrucciones concretas y verificables, y dividí en subtemas si crece mucho.</div></div>
+
+      <div class="concept-box blue"><strong>Auto Memory (nuevo en v2.1.59+):</strong> Además de tu CLAUDE.md, Claude puede generar sus propios apuntes automáticamente. Cuando hacés una corrección o le enseñás algo ("siempre usá pnpm, no npm"), lo guarda en <code style="font-size:11px">~/.claude/projects/tu-proyecto/memory/</code> para usarlo en sesiones futuras. Para verlo y editarlo, usá el comando <code style="font-size:11px">/memory</code> desde cualquier sesión.</div>
+
+      <h4>Generar con /init</h4>
+      <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">copiar</button>
+<span class="cmd">/init</span>  <span class="comment"># Claude analiza el proyecto y genera CLAUDE.md automáticamente</span>
+<span class="comment"># Si ya existe, /init sugiere mejoras sin sobrescribir</span></div>
+
+      <h4>Dónde poner CLAUDE.md según el alcance</h4>
+      <div class="table-wrap"><table>
+        <tr><th>Ubicación</th><th>Alcance</th><th>Cuándo usarlo</th></tr>
+        <tr><td><code>./CLAUDE.md</code></td><td>Solo ese proyecto</td><td>Estándares del equipo, arquitectura, comandos de build</td></tr>
+        <tr><td><code>~/.claude/CLAUDE.md</code></td><td>Todos tus proyectos</td><td>Preferencias personales, herramientas favoritas</td></tr>
+        <tr><td><code>.claude/rules/*.md</code></td><td>Por tipo de archivo</td><td>Reglas específicas para <code>src/api/**</code> o <code>**/*.ts</code></td></tr>
+      </table></div>
+
+      <h4>Reglas esenciales para agregar</h4>
+      <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">copiar</button>
+<span class="comment">## Reglas de calidad</span>
+- SIEMPRE verificá tu trabajo antes de darlo por terminado.
+- Antes de implementar, investigá el código existente.
+- NO implementes nada si no estás 100% seguro.
+
+<span class="comment">## Sistema de memoria</span>
+- Antes de terminar, guardá un resumen en PROGRESS.md
+- Al iniciar, leé ese archivo para retomar donde dejaste.
+- Secciones: "Completado", "En progreso", "Pendiente".</div>
+    </div></div>
+  </div>
+
+  <div class="accordion" id="acc-contexto" data-types="cmd">
+    <div class="acc-header" onclick="toggleAcc('acc-contexto')">
+      <div class="acc-title"><span class="acc-num">04</span><span class="acc-type-badge badge-cmd">comando</span><span class="acc-label">context-mode — reducir el contexto 98%</span></div>
+      <div class="acc-actions"><button class="acc-fav" onclick="event.stopPropagation();toggleFav('acc-contexto',this)">⭐</button><div class="acc-icon">+</div></div>
+    </div>
+    <div class="acc-body"><div class="acc-content">
+      <div class="concept-box red"><strong>El problema:</strong> Screenshot de Playwright = 56KB. Lista de issues = 59KB. En pocas llamadas el contexto se llena y Claude pierde el hilo.</div>
+      <div class="concept-box highlight"><strong>La solución:</strong> context-mode reduce 98% el contexto. Ejecuta en sandbox, indexa resultados pesados (315KB → 5.4KB con BM25) y restaura la sesión automáticamente.</div>
+      <h4>Instalación</h4>
+      <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">copiar</button>
+<span class="cmd">/plugin marketplace add mksglu/context-mode</span>
+<span class="cmd">/plugin install context-mode@context-mode</span></div>
+      <h4>Verificar</h4>
+      <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">copiar</button>
+<span class="cmd">ctx doctor</span>   <span class="comment"># revisa runtimes y hooks</span>
+<span class="cmd">ctx stats</span>    <span class="comment"># KB ahorrados en tiempo real</span></div>
+    </div></div>
+  </div>
+
+  <div class="accordion" id="acc-5tools" data-types="cmd">
+    <div class="acc-header" onclick="toggleAcc('acc-5tools')">
+      <div class="acc-title"><span class="acc-num">05</span><span class="acc-type-badge badge-cmd">comando</span><span class="acc-label">5 herramientas open source — el arsenal completo</span></div>
+      <div class="acc-actions"><button class="acc-fav" onclick="event.stopPropagation();toggleFav('acc-5tools',this)">⭐</button><div class="acc-icon">+</div></div>
+    </div>
+    <div class="acc-body"><div class="acc-content">
+      <div class="table-wrap"><table>
+        <tr><th>Herramienta</th><th>Qué hace</th><th>Instalación</th></tr>
+        <tr><td>Superpowers ⭐103K</td><td>Sub-agentes, TDD, debugging sistemático</td><td><code>npx superpowers@latest init</code></td></tr>
+        <tr><td>Everything Claude Code ⭐50K</td><td>28 agentes + 116 skills + 59 comandos slash</td><td><code>git clone affaan-m/everything-claude-code</code></td></tr>
+        <tr><td>UI UX Pro Max</td><td>67 estilos, 161 paletas, 57 fuentes</td><td><code>npx uipro-cli@latest init</code></td></tr>
+        <tr><td>claude-mem ⭐39K</td><td>Memoria permanente + búsqueda semántica</td><td><code>npx claude-mem@latest init</code></td></tr>
+        <tr><td>n8n-MCP</td><td>1,084 nodos y 2,709 templates de automatización</td><td><code>npx n8n-mcp@latest</code></td></tr>
+      </table></div>
+      <h4>4 superpoderes MCP</h4>
+      <div class="table-wrap"><table>
+        <tr><th>MCP</th><th>Qué hace</th><th>Clave necesaria</th></tr>
+        <tr><td>Supadata</td><td>Transcribe videos de YouTube, TikTok, Instagram</td><td><code>SUPADATA_API_KEY</code></td></tr>
+        <tr><td>Apify</td><td>Scraping de cualquier página — Instagram, precios, leads</td><td><code>APIFY_TOKEN</code></td></tr>
+        <tr><td>Last 30 Days</td><td>Noticias de los últimos 30 días de cualquier nicho</td><td>Ninguna</td></tr>
+        <tr><td>Playwright CLI</td><td>Navegador propio — más rápido que la integración Chrome</td><td>Ninguna</td></tr>
+      </table></div>
+    </div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ WEB ══════════════════════════════════════ -->
+<div id="sec-web" class="section">
+  <div class="section-header">
+    <div class="eyebrow">Módulo 02</div>
+    <h2>Diseño web con Claude</h2>
+    <p>De landing pages completas a réplicas de diseños y SEO técnico automatizado.</p>
+  </div>
+
+  <div class="accordion open" id="acc-webbuilder" data-types="cmd">
+    <div class="acc-header" onclick="toggleAcc('acc-webbuilder')">
+      <div class="acc-title"><span class="acc-num">01</span><span class="acc-type-badge badge-cmd">comando</span><span class="acc-label">Claude Web Builder — landing completa en minutos</span></div>
+      <div class="acc-actions"><button class="acc-fav" onclick="event.stopPropagation();toggleFav('acc-webbuilder',this)">⭐</button><div class="acc-icon">+</div></div>
+    </div>
+    <div class="acc-body"><div class="acc-content">
+      <div class="analogy"><span class="icon">🏠</span><div><strong>La analogía:</strong> Le decís qué hace tu negocio, te hace preguntas y construye la landing completa — colores, animaciones, SEO, deploy — mientras tomás café.</div></div>
+      <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">copiar</button>
+<span class="cmd">git clone https://github.com/Hainrixz/claude-webkit.git</span>
+<span class="cmd">cd claude-webkit</span>
+<span class="cmd">claude</span></div>
+      <h4>6 fases automáticas</h4>
+      <div class="pill-row">
+        <span class="pill">1 · Preguntas</span><span class="pill">2 · Aprobación</span><span class="pill">3 · Construcción</span><span class="pill">4 · Vista previa</span><span class="pill">5 · Refinamiento</span><span class="pill green">6 · Deploy Vercel</span>
+      </div>
+      <h4>Stack</h4>
+      <div class="pill-row">
+        <span class="pill purple">Next.js 15+</span><span class="pill purple">Tailwind CSS 4</span><span class="pill purple">shadcn/ui</span><span class="pill purple">Framer Motion</span><span class="pill purple">TypeScript</span>
+      </div>
+    </div></div>
+  </div>
+
+  <div class="accordion" id="acc-disenador" data-types="cmd prompt">
+    <div class="acc-header" onclick="toggleAcc('acc-disenador')">
+      <div class="acc-title"><span class="acc-num">02</span><span class="acc-type-badge badge-cmd">comando</span><span class="acc-label">Diseñador Definitivo — combo de 4 herramientas</span></div>
+      <div class="acc-actions"><button class="acc-fav" onclick="event.stopPropagation();toggleFav('acc-disenador',this)">⭐</button><div class="acc-icon">+</div></div>
+    </div>
+    <div class="acc-body"><div class="acc-content">
+      <div class="table-wrap"><table>
+        <tr><th>Herramienta</th><th>Rol</th><th>Instalación</th></tr>
+        <tr><td>UI/UX Pro Max GO</td><td>El cerebro — 67 estilos, 161 paletas, 57 fuentes</td><td><code>npx uipro-cli@latest init --ai claude</code></td></tr>
+        <tr><td>NanoBanana MCP</td><td>El artista — mockups con Gemini</td><td><code>pip install nanobanana-mcp-server</code></td></tr>
+        <tr><td>Google Stitch MCP</td><td>Diseñador UI — HTML/CSS completo</td><td><code>npx @_davideast/stitch-mcp init</code></td></tr>
+        <tr><td>21st Dev Magic</td><td>La tienda — componentes premium React/Tailwind</td><td><code>npx @21st-dev/cli@latest install claude --api-key KEY</code></td></tr>
+      </table></div>
+      <div class="prompt-block"><span class="prompt-label">Prompt — landing completa</span><button class="prompt-copy" onclick="copyPrompt(this)">copiar</button>Necesito una landing page para una startup de IA educativa. Primero generá un mockup con Stitch como referencia visual. Después usá el skill de UI/UX Pro Max para elegir la paleta y tipografía correcta para educación. Finalmente construí la página con componentes de 21st Dev Magic — hero section, features grid, testimonios y pricing. Todo con Next.js y Tailwind CSS.</div>
+    </div></div>
+  </div>
+
+  <div class="accordion" id="acc-replica" data-types="prompt cmd">
+    <div class="acc-header" onclick="toggleAcc('acc-replica')">
+      <div class="acc-title"><span class="acc-num">03</span><span class="acc-type-badge badge-prompt">prompt</span><span class="acc-label">Réplica de diseños — copiá cualquier página</span></div>
+      <div class="acc-actions"><button class="acc-fav" onclick="event.stopPropagation();toggleFav('acc-replica',this)">⭐</button><div class="acc-icon">+</div></div>
+    </div>
+    <div class="acc-body"><div class="acc-content">
+      <div class="steps">
+        <div class="step"><div class="step-num"></div><div class="step-body"><strong>Instalar skill:</strong> <code style="font-family:monospace;color:var(--accent);font-size:12px">claude install-skill https://github.com/nextlevelbuilder/ui-ux-pro-max-skill</code></div></div>
+        <div class="step"><div class="step-num"></div><div class="step-body"><strong>Copiar la URL</strong> de la página que querés replicar</div></div>
+        <div class="step"><div class="step-num"></div><div class="step-body"><strong>Pegar el prompt</strong> con la URL en Claude Code</div></div>
+      </div>
+      <div class="prompt-block"><span class="prompt-label">Prompt de replicación</span><button class="prompt-copy" onclick="copyPrompt(this)">copiar</button>Esta es la landing page [URL]. Replicá el layout y espaciado, la tipografía, los patrones de animación y la paleta de colores. Usá el skill UI UX Pro Max y Tailwind CSS para construir un sitio completamente responsive con mi contenido y copy. Si no tenés imágenes, usá NanoBanana para generarlos.</div>
+    </div></div>
+  </div>
+
+  <div class="accordion" id="acc-seo" data-types="cmd">
+    <div class="acc-header" onclick="toggleAcc('acc-seo')">
+      <div class="acc-title"><span class="acc-num">04</span><span class="acc-type-badge badge-cmd">comando</span><span class="acc-label">Claude SEO — 13 comandos de especialista</span></div>
+      <div class="acc-actions"><button class="acc-fav" onclick="event.stopPropagation();toggleFav('acc-seo',this)">⭐</button><div class="acc-icon">+</div></div>
+    </div>
+    <div class="acc-body"><div class="acc-content">
+      <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">copiar</button><span class="cmd">npx skills.sh install claude-seo</span></div>
+      <div class="table-wrap"><table>
+        <tr><th>Comando</th><th>Qué hace</th></tr>
+        <tr><td><code>/seo-audit</code></td><td>Meta tags, headings, links rotos, sitemap, canonical</td></tr>
+        <tr><td><code>/seo-speed</code></td><td>Bundle size, Core Web Vitals, imágenes sin optimizar</td></tr>
+        <tr><td><code>/seo-keywords</code></td><td>Densidad, variaciones semánticas, oportunidades</td></tr>
+        <tr><td><code>/seo-meta</code></td><td>Genera meta titles y descriptions optimizados</td></tr>
+        <tr><td><code>/seo-images</code></td><td>Alt text, formato WebP/AVIF, lazy loading</td></tr>
+        <tr><td><code>/seo-report</code></td><td>Reporte Markdown completo con plan de acción</td></tr>
+        <tr><td><code>/seo-fix ⭐</code></td><td>Analiza, prioriza y corrige automáticamente con diff previo</td></tr>
+      </table></div>
+      <div class="tip">Empezá con <code style="font-family:monospace;color:var(--accent);font-size:12px">/seo-audit</code> para el estado general, después <code style="font-family:monospace;color:var(--accent);font-size:12px">/seo-fix</code> para corrección automática.</div>
+    </div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ MARKETING ══════════════════════════════════════ -->
+<div id="sec-marketing" class="section">
+  <div class="section-header">
+    <div class="eyebrow">Módulo 03</div>
+    <h2>Marketing y contenido</h2>
+    <p>Ads, copywriting, humanización de textos y 33 skills de marketing listos para instalar.</p>
+  </div>
+
+  <div class="accordion open" id="acc-humanizer" data-types="cmd concepto">
+    <div class="acc-header" onclick="toggleAcc('acc-humanizer')">
+      <div class="acc-title"><span class="acc-num">01</span><span class="acc-type-badge badge-cmd">comando</span><span class="acc-label">Humanizalo — texto que no suena a robot</span></div>
+      <div class="acc-actions"><button class="acc-fav" onclick="event.stopPropagation();toggleFav('acc-humanizer',this)">⭐</button><div class="acc-icon">+</div></div>
+    </div>
+    <div class="acc-body"><div class="acc-content">
+      <div class="table-wrap"><table>
+        <tr><th>Categoría</th><th>Patrones que detecta</th></tr>
+        <tr><td>Vocabulario de IA</td><td>"panorama", "sin precedentes", "revolucionario", "catalizador", "robusto"</td></tr>
+        <tr><td>Estructura robótica</td><td>Guiones largos (—) en exceso, negritas en cada párrafo</td></tr>
+        <tr><td>Relleno sin valor</td><td>"con el fin de", "podría potencialmente", "el futuro se ve prometedor"</td></tr>
+        <tr><td>Comunicación de chatbot</td><td>"Espero que esto te sea útil", "Según mis fuentes limitadas..."</td></tr>
+      </table></div>
+      <h4>Instalación y uso</h4>
+      <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">copiar</button>
+<span class="cmd">git clone https://github.com/Hainrixz/humanizalo.git ~/.claude/skills/humanizalo</span>
+
+<span class="comment"># Uso</span>
+<span class="cmd">/humanizalo [pegá tu texto aquí]</span></div>
+      <div class="tip">El texto se evalúa con 6 dimensiones (directo, ritmo, confianza, autenticidad, densidad, alma). Necesita 42/60 para considerarse humano.</div>
+    </div></div>
+  </div>
+
+  <div class="accordion" id="acc-ads" data-types="cmd prompt">
+    <div class="acc-header" onclick="toggleAcc('acc-ads')">
+      <div class="acc-title"><span class="acc-num">02</span><span class="acc-type-badge badge-cmd">comando</span><span class="acc-label">Claude Ads — agencia de publicidad en la terminal</span></div>
+      <div class="acc-actions"><button class="acc-fav" onclick="event.stopPropagation();toggleFav('acc-ads',this)">⭐</button><div class="acc-icon">+</div></div>
+    </div>
+    <div class="acc-body"><div class="acc-content">
+      <div class="concept-box blue"><strong>190+ checks · 6 plataformas · Ads Health Score 0-100</strong><br>Google, Meta, YouTube, TikTok, LinkedIn y Microsoft. 6 agentes en paralelo. Plantillas para 11 tipos de negocio.</div>
+      <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">copiar</button>
+<span class="comment"># macOS / Linux</span>
+<span class="cmd">curl -fsSL https://raw.githubusercontent.com/AgriciDaniel/claude-ads/main/install.sh | bash</span></div>
+      <div class="cmd-grid">
+        <div class="cmd-item"><code>/ads audit</code><span>Auditoría completa multi-plataforma</span></div>
+        <div class="cmd-item"><code>/ads google</code><span>Análisis profundo Google Ads</span></div>
+        <div class="cmd-item"><code>/ads meta</code><span>Análisis profundo Meta Ads</span></div>
+        <div class="cmd-item"><code>/ads creative</code><span>Auditoría de creativos</span></div>
+        <div class="cmd-item"><code>/ads budget</code><span>Revisión de presupuesto y pujas</span></div>
+        <div class="cmd-item"><code>/ads competitor</code><span>Inteligencia de competidores</span></div>
+        <div class="cmd-item"><code>/ads plan ecommerce</code><span>Planificación por industria</span></div>
+        <div class="cmd-item"><code>/ads landing</code><span>Evaluación de landing pages</span></div>
+      </div>
+      <div class="prompt-block"><span class="prompt-label">Prompt — auditoría completa</span><button class="prompt-copy" onclick="copyPrompt(this)">copiar</button>/ads audit Analizá todas mis campañas activas. Quiero: 1. Mi Ads Health Score general 2. Los 5 problemas más urgentes por impacto 3. Quick wins implementables hoy 4. Comparación de rendimiento entre plataformas</div>
+    </div></div>
+  </div>
+
+  <div class="accordion" id="acc-29skills" data-types="cmd">
+    <div class="acc-header" onclick="toggleAcc('acc-29skills')">
+      <div class="acc-title"><span class="acc-num">03</span><span class="acc-type-badge badge-cmd">comando</span><span class="acc-label">33 skills de marketing — el arsenal completo</span></div>
+      <div class="acc-actions"><button class="acc-fav" onclick="event.stopPropagation();toggleFav('acc-29skills',this)">⭐</button><div class="acc-icon">+</div></div>
+    </div>
+    <div class="acc-body"><div class="acc-content">
+      <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">copiar</button>
+<span class="comment"># Todos</span>
+<span class="cmd">npx skills add coreyhaines31/marketingskills</span>
+
+<span class="comment"># Solo algunos</span>
+<span class="cmd">npx skills add coreyhaines31/marketingskills --skill page-cro copywriting</span></div>
+      <div class="table-wrap"><table>
+        <tr><th>Área</th><th>Skills incluidos</th></tr>
+        <tr><td>Conversiones</td><td>page-cro, signup-flow-cro, onboarding-cro, form-cro, popup-cro</td></tr>
+        <tr><td>Copy y contenido</td><td>copywriting, copy-editing, cold-email, email-sequence, social-content</td></tr>
+        <tr><td>SEO</td><td>seo-audit, ai-seo, programmatic-seo, site-architecture, schema-markup</td></tr>
+        <tr><td>Publicidad</td><td>paid-ads, ad-creative</td></tr>
+        <tr><td>Retención</td><td>churn-prevention, referral-program, free-tool-strategy</td></tr>
+        <tr><td>Estrategia</td><td>marketing-ideas, pricing-strategy, launch-strategy, content-strategy</td></tr>
+      </table></div>
+      <div class="tip"><strong>Empezá con product-marketing-context</strong> — crea el contexto base de tu producto. Todos los demás skills lo usan como referencia.</div>
+    </div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ AGENTES ══════════════════════════════════════ -->
+<div id="sec-agentes" class="section">
+  <div class="section-header">
+    <div class="eyebrow">Módulo 04</div>
+    <h2>Agentes y automatización</h2>
+    <p>Un agente es Claude con un trabajo específico, acceso a las herramientas que necesita y autonomía para ejecutarlo solo. En este módulo vas a aprender a crear agentes desde cero, conectarlos a WhatsApp, controlar tu computadora de forma remota y programar tareas que corren en la nube de Anthropic aunque tu laptop esté apagada.</p>
+  </div>
+
+  <div class="accordion open" id="acc-crear-agentes" data-types="concepto prompt">
+    <div class="acc-header" onclick="toggleAcc('acc-crear-agentes')">
+      <div class="acc-title"><span class="acc-num">01</span><span class="acc-type-badge badge-concepto">concepto</span><span class="acc-label">Cómo crear un agente — el flujo completo</span></div>
+      <div class="acc-actions"><button class="acc-fav" onclick="event.stopPropagation();toggleFav('acc-crear-agentes',this)">⭐</button><div class="acc-icon">+</div></div>
+    </div>
+    <div class="acc-body"><div class="acc-content">
+      <div class="analogy"><span class="icon">👷</span><div><strong>Un agente = Claude con un trabajo específico.</strong> Tarea definida + herramientas que necesita + autonomía para ejecutar. Como contratar un especialista.</div></div>
+      <div class="steps">
+        <div class="step"><div class="step-num"></div><div class="step-body"><strong>Abrir Claude Code:</strong> <code style="font-family:monospace;color:var(--accent);font-size:12px">claude</code></div></div>
+        <div class="step"><div class="step-num"></div><div class="step-body"><strong>Entrar en Plan Mode:</strong> Shift+Tab</div></div>
+        <div class="step"><div class="step-num"></div><div class="step-body"><strong>Describir el agente</strong> con el prompt de abajo</div></div>
+        <div class="step"><div class="step-num"></div><div class="step-body"><strong>Claude investiga</strong> y entrega un plan sin tocar nada</div></div>
+        <div class="step"><div class="step-num"></div><div class="step-body"><strong>Shift+Tab de nuevo</strong> para ejecutar</div></div>
+      </div>
+      <div class="prompt-block"><span class="prompt-label">Prompt — descubrir qué agentes necesitás</span><button class="prompt-copy" onclick="copyPrompt(this)">copiar</button>Haceme preguntas sobre mi día a día y mis tareas repetitivas. Basándote en mis respuestas, sugerí 3 agentes que podrían automatizarlas. Para cada uno: qué haría exactamente, qué herramientas necesita, cuánto tiempo me ahorraría por semana.</div>
+      <div class="prompt-block"><span class="prompt-label">Prompt — agente de code review</span><button class="prompt-copy" onclick="copyPrompt(this)">copiar</button>Quiero un agente que revise mis pull requests automáticamente. Debe: 1. Leer archivos modificados en cada PR 2. Detectar bugs y problemas de seguridad 3. Verificar estándares del proyecto (ESLint, TypeScript) 4. Dejar comentarios en el PR. Investigá mi proyecto y diseñá un plan completo.</div>
+    </div></div>
+  </div>
+
+  <div class="accordion" id="acc-whatsapp" data-types="cmd">
+    <div class="acc-header" onclick="toggleAcc('acc-whatsapp')">
+      <div class="acc-title"><span class="acc-num">02</span><span class="acc-type-badge badge-cmd">comando</span><span class="acc-label">WhatsApp AgentKit — agente en 30 minutos</span></div>
+      <div class="acc-actions"><button class="acc-fav" onclick="event.stopPropagation();toggleFav('acc-whatsapp',this)">⭐</button><div class="acc-icon">+</div></div>
+    </div>
+    <div class="acc-body"><div class="acc-content">
+      <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">copiar</button>
+<span class="cmd">git clone https://github.com/Hainrixz/whatsapp-agentkit.git</span>
+<span class="cmd">cd whatsapp-agentkit && bash start.sh</span>
+<span class="cmd">claude</span>
+<span class="comment"># Dentro de Claude Code:</span>
+<span class="cmd">/build-agent</span></div>
+      <div class="two-col">
+        <div class="col-box"><div class="col-title">Docker (tu servidor)</div><code style="font-family:monospace;font-size:11px;color:var(--accent)">docker compose up --build</code></div>
+        <div class="col-box green"><div class="col-title">Railway (sin servidor)</div><p style="font-size:12px;color:var(--text2)">Subís a GitHub → conectás en railway.app → deploy automático</p></div>
+      </div>
+      <div class="tip">Costo: ~$3 por millón de tokens (Claude API). Whapi tiene sandbox gratis. Railway tiene plan free.</div>
+    </div></div>
+  </div>
+
+  <div class="accordion" id="acc-schedule" data-types="cmd prompt">
+    <div class="acc-header" onclick="toggleAcc('acc-schedule')">
+      <div class="acc-title"><span class="acc-num">03</span><span class="acc-type-badge badge-cmd">comando</span><span class="acc-label">/schedule vs /loop — agentes en la nube 24/7</span></div>
+      <div class="acc-actions"><button class="acc-fav" onclick="event.stopPropagation();toggleFav('acc-schedule',this)">⭐</button><div class="acc-icon">+</div></div>
+    </div>
+    <div class="acc-body"><div class="acc-content">
+      <div class="two-col">
+        <div class="col-box"><div class="col-title">/loop — local</div><ul><li>Corre en tu máquina</li><li>Laptop debe estar encendida</li><li>Se detiene al cerrar</li></ul></div>
+        <div class="col-box green"><div class="col-title">/schedule — nube ☁️</div><ul><li>Corre en servidores de Anthropic</li><li>Tu laptop puede estar apagada</li><li>Sigue de noche y en finde</li></ul></div>
+      </div>
+      <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">copiar</button>
+<span class="comment"># Actualizar docs con cada PR del día</span>
+<span class="cmd">/schedule a daily job that looks at all PRs shipped since yesterday and update our docs. Use the Slack MCP to message #docs-update</span>
+
+<span class="comment"># Reporte diario a las 7am</span>
+<span class="cmd">/schedule daily at 7am, summarize all GitHub issues opened yesterday and send to my email via Gmail MCP</span>
+
+<span class="comment"># Monitoreo de competencia</span>
+<span class="cmd">/schedule every Monday at 8am, visit [competitor.com] pricing page and compare with /docs/precios.csv. Alert on Slack if any price dropped 10%+</span></div>
+    </div></div>
+  </div>
+
+  <div class="accordion" id="acc-cowork" data-types="concepto prompt">
+    <div class="acc-header" onclick="toggleAcc('acc-cowork')">
+      <div class="acc-title"><span class="acc-num">04</span><span class="acc-type-badge badge-concepto">concepto</span><span class="acc-label">Cowork — Claude trabaja mientras no estás</span></div>
+      <div class="acc-actions"><button class="acc-fav" onclick="event.stopPropagation();toggleFav('acc-cowork',this)">⭐</button><div class="acc-icon">+</div></div>
+    </div>
+    <div class="acc-body"><div class="acc-content">
+      <div class="analogy"><span class="icon">🏢</span><div><strong>El nuevo paradigma:</strong> Ya no abrís Claude para decirle qué hacer. Abrís Claude para ver qué hizo.</div></div>
+      <div class="steps">
+        <div class="step"><div class="step-num"></div><div class="step-body"><strong>Crear proyecto:</strong> Claude Desktop → Cowork → Projects → "+"</div></div>
+        <div class="step"><div class="step-num"></div><div class="step-body"><strong>Agregar instrucciones</strong> permanentes (cómo quiero que responda, qué no hacer)</div></div>
+        <div class="step"><div class="step-num"></div><div class="step-body"><strong>Agregar contexto:</strong> carpetas, archivos, URLs</div></div>
+        <div class="step"><div class="step-num"></div><div class="step-body"><strong>Crear tareas programadas</strong> con frecuencia y modelo</div></div>
+      </div>
+      <div class="prompt-block"><span class="prompt-label">Tarea programada — resumen semanal</span><button class="prompt-copy" onclick="copyPrompt(this)">copiar</button>Cada lunes a las 9:00 AM: 1. Revisá la carpeta /Documentos/Reportes/ 2. Identificá archivos nuevos o modificados en los últimos 7 días 3. Leé cada archivo y extraé los puntos clave 4. Generá un resumen ejecutivo en /Documentos/Resumenes/resumen-semanal.md 5. Si encontrás algo urgente, ponlo al inicio marcado como URGENTE</div>
+      <div class="warning"><strong>Keep Awake:</strong> Settings → General → activarlo. Las tareas solo se ejecutan con la app abierta y la PC encendida.</div>
+    </div></div>
+  </div>
+
+  <div class="accordion" id="acc-computer-use" data-types="prompt concepto">
+    <div class="acc-header" onclick="toggleAcc('acc-computer-use')">
+      <div class="acc-title"><span class="acc-num">05</span><span class="acc-type-badge badge-concepto">concepto</span><span class="acc-label">Computer Use — Claude controla tu pantalla</span></div>
+      <div class="acc-actions"><button class="acc-fav" onclick="event.stopPropagation();toggleFav('acc-computer-use',this)">⭐</button><div class="acc-icon">+</div></div>
+    </div>
+    <div class="acc-body"><div class="acc-content">
+      <div class="concept-box orange"><strong>Qué es:</strong> Claude ve tu pantalla, mueve el mouse, hace clic y escribe. Ideal para apps sin API (CRMs viejos, sistemas internos), testing automático, y cualquier tarea que requiera una interfaz gráfica.</div>
+      <div class="two-col">
+        <div class="col-box"><div class="col-title">Claude Desktop</div><p style="font-size:13px;color:var(--text2)">Settings → Computer Use → activar toggle → permisos de accesibilidad</p></div>
+        <div class="col-box"><div class="col-title">Claude Code</div><code style="font-family:monospace;font-size:12px;color:var(--accent)">claude --computer-use</code></div>
+      </div>
+      <div class="prompt-block"><span class="prompt-label">Prompt — QA automático</span><button class="prompt-copy" onclick="copyPrompt(this)">copiar</button>Abrí mi proyecto en http://localhost:3000. Navegá por todas las páginas del menú. En cada página: 1. Verificá errores en consola 2. Revisá que todos los botones sean clickeables 3. Confirmá que las imágenes cargan 4. Probá el formulario de contacto con datos de prueba. Generá un reporte con los problemas encontrados.</div>
+    </div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ PRODUCTIVIDAD ══════════════════════════════════════ -->
+<div id="sec-productividad" class="section">
+  <div class="section-header">
+    <div class="eyebrow">Módulo 05</div>
+    <h2>Productividad y skills</h2>
+    <p>El mayor problema de trabajar con Claude a largo plazo es la falta de memoria — cada sesión empieza de cero. En este módulo vas a ver cómo resolverlo con Obsidian, cómo convertir cualquier fuente de información en contexto listo para Claude, y cómo instalar o crear skills que extienden sus capacidades para casos de uso específicos.</p>
+  </div>
+
+  <div class="accordion open" id="acc-obsidian" data-types="concepto prompt cmd">
+    <div class="acc-header" onclick="toggleAcc('acc-obsidian')">
+      <div class="acc-title"><span class="acc-num">01</span><span class="acc-type-badge badge-concepto">concepto</span><span class="acc-label">Obsidian + Claude — memoria permanente</span></div>
+      <div class="acc-actions"><button class="acc-fav" onclick="event.stopPropagation();toggleFav('acc-obsidian',this)">⭐</button><div class="acc-icon">+</div></div>
+    </div>
+    <div class="acc-body"><div class="acc-content">
+      <div class="analogy"><span class="icon">🧠</span><div><strong>La analogía:</strong> La ventana de contexto de Claude es como la RAM de tu computadora — limitada, rápida y se borra al cerrar. Obsidian es el disco duro — puede guardar miles de notas, todas conectadas entre sí, y no se borra nunca. Lo mejor es que Obsidian guarda todo como archivos <code style="font-size:12px">.md</code> (Markdown), que es exactamente el formato nativo de Claude. Cuando Claude abre tu vault, lo lee sin ninguna traducción — como hablar en su propio idioma.</div></div>
+      <div class="steps">
+        <div class="step"><div class="step-num"></div><div class="step-body">Descargar Obsidian gratis desde <strong>obsidian.md</strong> y crear un vault</div></div>
+        <div class="step"><div class="step-num"></div><div class="step-body"><code style="font-family:monospace;color:var(--accent);font-size:12px">claude install-skill https://github.com/kepano/obsidian-skills</code></div></div>
+        <div class="step"><div class="step-num"></div><div class="step-body">Crear CLAUDE.md en la raíz del vault</div></div>
+        <div class="step"><div class="step-num"></div><div class="step-body">Siempre abrir desde el vault: <code style="font-family:monospace;color:var(--accent);font-size:12px">cd ~/mi-vault && claude</code></div></div>
+      </div>
+      <div class="prompt-block"><span class="prompt-label">Al terminar la sesión</span><button class="prompt-copy" onclick="copyPrompt(this)">copiar</button>Guardá un resumen de lo que hicimos hoy en mi vault. Creá una nota en /diario con la fecha, los cambios principales, decisiones tomadas y lo que queda pendiente. Conectá con wikilinks a las notas de proyecto relevantes.</div>
+      <div class="prompt-block"><span class="prompt-label">Al iniciar la sesión</span><button class="prompt-copy" onclick="copyPrompt(this)">copiar</button>Antes de empezar, revisá mis notas sobre [proyecto] en /proyectos. Leé el STATE.md y las notas más recientes en /diario. Dame un resumen de dónde quedamos y qué sigue pendiente.</div>
+    </div></div>
+  </div>
+
+  <div class="accordion" id="acc-skill-seekers" data-types="cmd prompt">
+    <div class="acc-header" onclick="toggleAcc('acc-skill-seekers')">
+      <div class="acc-title"><span class="acc-num">02</span><span class="acc-type-badge badge-cmd">comando</span><span class="acc-label">Skill Seekers — cualquier fuente en contexto para Claude</span></div>
+      <div class="acc-actions"><button class="acc-fav" onclick="event.stopPropagation();toggleFav('acc-skill-seekers',this)">⭐</button><div class="acc-icon">+</div></div>
+    </div>
+    <div class="acc-body"><div class="acc-content">
+      <div class="concept-box blue"><strong>Qué hace:</strong> Extrae información de cualquier fuente (GitHub, PDFs, videos, Notion, Slack, wikis) y la empaqueta para la ventana de contexto de Claude. Lo que antes tardaba horas, ahora son 3 comandos.</div>
+      <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">copiar</button>
+<span class="cmd">pip install skill-seekers</span>
+
+<span class="comment"># Pipeline completo</span>
+<span class="cmd">skill-seekers create [URL o ruta]</span>
+<span class="cmd">skill-seekers enhance skill-seekers-output/</span>
+<span class="cmd">skill-seekers package skill-seekers-output/ --target claude</span></div>
+      <div class="prompt-block"><span class="prompt-label">Analizar repo de GitHub → notas en Obsidian</span><button class="prompt-copy" onclick="copyPrompt(this)">copiar</button>Usá Skill Seekers para extraer y empaquetar el repositorio [URL]. Con el contexto, creá notas en mi vault explicando: qué hace el proyecto, cómo está organizado, los conceptos clave y cómo empezar a usarlo. Usá wikilinks para conectar conceptos relacionados.</div>
+    </div></div>
+  </div>
+
+  <div class="accordion" id="acc-crear-skills" data-types="concepto cmd">
+    <div class="acc-header" onclick="toggleAcc('acc-crear-skills')">
+      <div class="acc-title"><span class="acc-num">03</span><span class="acc-type-badge badge-concepto">concepto</span><span class="acc-label">Crear tus propios skills — el meta-skill</span></div>
+      <div class="acc-actions"><button class="acc-fav" onclick="event.stopPropagation();toggleFav('acc-crear-skills',this)">⭐</button><div class="acc-icon">+</div></div>
+    </div>
+    <div class="acc-body"><div class="acc-content">
+      <div class="analogy"><span class="icon">🔧</span><div><strong>Un skill = un SKILL.md.</strong> Archivo de instrucciones especializadas que Claude lee automáticamente. Podés crear uno para cualquier tarea recurrente en tu equipo.</div></div>
+      <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">copiar</button>
+<span class="comment"># Skill Creator — instalación global</span>
+<span class="cmd">mkdir -p ~/.claude/skills/skill-creator</span>
+<span class="cmd">cp ~/Downloads/skill-creator-SKILL.md ~/.claude/skills/skill-creator/SKILL.md</span></div>
+      <h4>Dónde encontrar skills</h4>
+      <div class="table-wrap"><table>
+        <tr><th>Fuente</th><th>Qué tiene</th></tr>
+        <tr><td>skills.sh</td><td>Directorio abierto — buscás por tema, instalás con un comando</td></tr>
+        <tr><td>Vercel find-skills</td><td><code>npx skills add https://github.com/vercel-labs/skills --skill find-skills</code></td></tr>
+        <tr><td>aitmpl.com/skills</td><td>Colección curada de la comunidad</td></tr>
+      </table></div>
+      <div class="tip">Solo decile a Claude "Quiero crear un skill que haga X" y el Skill Creator se activa automáticamente.</div>
+    </div></div>
+  </div>
+
+  <div class="accordion" id="acc-maia" data-types="cmd">
+    <div class="acc-header" onclick="toggleAcc('acc-maia')">
+      <div class="acc-title"><span class="acc-num">04</span><span class="acc-type-badge badge-cmd">comando</span><span class="acc-label">Maia Skill — 5 agentes analizando mercados en paralelo</span></div>
+      <div class="acc-actions"><button class="acc-fav" onclick="event.stopPropagation();toggleFav('acc-maia',this)">⭐</button><div class="acc-icon">+</div></div>
+    </div>
+    <div class="acc-body"><div class="acc-content">
+      <div class="concept-box orange"><strong>Qué es:</strong> 5 agentes (crypto, acciones, divisas, materiales, estrategia) investigan mercados en tiempo real y generan un dashboard interactivo en localhost:3420. Solo para información — no es asesoría financiera.</div>
+      <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">copiar</button>
+<span class="cmd">curl -fsSL https://raw.githubusercontent.com/Hainrixz/maia-skill/main/install.sh | bash</span>
+
+<span class="comment"># Activar (en Claude Code)</span>
+Haceme un análisis de inversión
+
+<span class="comment"># Automático diario</span>
+<span class="cmd">/loop 24h /investment-analysis</span></div>
+    </div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ REFERENCIA ══════════════════════════════════════ -->
+<div id="sec-referencia" class="section">
+  <div class="section-header">
+    <div class="eyebrow">Referencia rápida</div>
+    <h2>Todos los comandos en un lugar</h2>
+    <p>Copiá y pegá directo. Sin buscar.</p>
+  </div>
+
+  <div class="accordion open" id="acc-ref-install" data-types="cmd">
+    <div class="acc-header" onclick="toggleAcc('acc-ref-install')">
+      <div class="acc-title"><span class="acc-num">⚡</span><span class="acc-type-badge badge-cmd">comando</span><span class="acc-label">Todas las instalaciones</span></div>
+      <div class="acc-actions"><button class="acc-fav" onclick="event.stopPropagation();toggleFav('acc-ref-install',this)">⭐</button><div class="acc-icon">+</div></div>
+    </div>
+    <div class="acc-body"><div class="acc-content">
+      <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">copiar</button>
+<span class="comment"># Claude Code</span>
+<span class="cmd">curl -fsSL https://claude.ai/install.sh | bash</span>
+
+<span class="comment"># Superpowers</span>
+<span class="cmd">npx superpowers@latest init</span>
+
+<span class="comment"># claude-mem</span>
+<span class="cmd">npx claude-mem@latest init</span>
+
+<span class="comment"># UI UX Pro Max</span>
+<span class="cmd">npx uipro-cli@latest init --ai claude</span>
+
+<span class="comment"># n8n-MCP</span>
+<span class="cmd">npx n8n-mcp@latest</span>
+
+<span class="comment"># context-mode</span>
+<span class="cmd">/plugin marketplace add mksglu/context-mode</span>
+<span class="cmd">/plugin install context-mode@context-mode</span>
+
+<span class="comment"># Claude SEO</span>
+<span class="cmd">npx skills.sh install claude-seo</span>
+
+<span class="comment"># Claude Ads</span>
+<span class="cmd">curl -fsSL https://raw.githubusercontent.com/AgriciDaniel/claude-ads/main/install.sh | bash</span>
+
+<span class="comment"># Humanizalo</span>
+<span class="cmd">git clone https://github.com/Hainrixz/humanizalo.git ~/.claude/skills/humanizalo</span>
+
+<span class="comment"># 33 skills de marketing</span>
+<span class="cmd">npx skills add coreyhaines31/marketingskills</span>
+
+<span class="comment"># obsidian-skills</span>
+<span class="cmd">claude install-skill https://github.com/kepano/obsidian-skills</span>
+
+<span class="comment"># Skill Seekers</span>
+<span class="cmd">pip install skill-seekers</span>
+
+<span class="comment"># Maia Skill</span>
+<span class="cmd">curl -fsSL https://raw.githubusercontent.com/Hainrixz/maia-skill/main/install.sh | bash</span></div>
+    </div></div>
+  </div>
+
+  <div class="accordion" id="acc-ref-comandos" data-types="cmd">
+    <div class="acc-header" onclick="toggleAcc('acc-ref-comandos')">
+      <div class="acc-title"><span class="acc-num">⚡</span><span class="acc-type-badge badge-cmd">comando</span><span class="acc-label">Comandos de Claude Code</span></div>
+      <div class="acc-actions"><button class="acc-fav" onclick="event.stopPropagation();toggleFav('acc-ref-comandos',this)">⭐</button><div class="acc-icon">+</div></div>
+    </div>
+    <div class="acc-body"><div class="acc-content">
+      <div class="table-wrap"><table>
+        <tr><th>Comando</th><th>Qué hace</th></tr>
+        <tr><td><code>/init</code></td><td>Crea CLAUDE.md con el contexto del proyecto</td></tr>
+        <tr><td><code>Shift+Tab</code></td><td>Alterna entre Plan Mode (solo lectura) y Auto Mode</td></tr>
+        <tr><td><code>/clear</code></td><td>Limpia el contexto actual</td></tr>
+        <tr><td><code>/compact</code></td><td>Resume la conversación para usar menos contexto</td></tr>
+        <tr><td><code>/mcp</code></td><td>Ver servidores MCP conectados</td></tr>
+        <tr><td><code>/loop Nh tarea</code></td><td>Ejecuta la tarea cada N horas (local)</td></tr>
+        <tr><td><code>/schedule ...</code></td><td>Crea tarea recurrente en la nube de Anthropic</td></tr>
+        <tr><td><code>ctx doctor</code></td><td>Diagnóstico de context-mode</td></tr>
+        <tr><td><code>ctx stats</code></td><td>KB ahorrados en tiempo real</td></tr>
+        <tr><td><code>/seo-fix</code></td><td>Audita y corrige SEO automáticamente</td></tr>
+        <tr><td><code>/ads audit</code></td><td>Auditoría completa de campañas</td></tr>
+        <tr><td><code>/humanizalo</code></td><td>Humaniza un texto</td></tr>
+        <tr><td><code>claude --computer-use</code></td><td>Activa control de pantalla en Claude Code</td></tr>
+      </table></div>
+    </div></div>
+  </div>
+
+  <div class="accordion" id="acc-ref-prompts" data-types="prompt">
+    <div class="acc-header" onclick="toggleAcc('acc-ref-prompts')">
+      <div class="acc-title"><span class="acc-num">⚡</span><span class="acc-type-badge badge-prompt">prompt</span><span class="acc-label">Prompts universales</span></div>
+      <div class="acc-actions"><button class="acc-fav" onclick="event.stopPropagation();toggleFav('acc-ref-prompts',this)">⭐</button><div class="acc-icon">+</div></div>
+    </div>
+    <div class="acc-body"><div class="acc-content">
+      <div class="prompt-block"><span class="prompt-label">Plan + ultrathink</span><button class="prompt-copy" onclick="copyPrompt(this)">copiar</button>ultrathink — Analizá mi proyecto completo y creá un plan detallado para [tarea]. Investigá la estructura actual, identificá todos los archivos que necesitás tocar y dame un plan paso a paso antes de escribir cualquier código.</div>
+      <div class="prompt-block"><span class="prompt-label">Sub-agentes</span><button class="prompt-copy" onclick="copyPrompt(this)">copiar</button>Cuando necesites completar esta tarea, usá sub-agentes para dividir el trabajo. Lanzá agentes separados en paralelo para cada parte independiente — uno para frontend, otro para backend, otro para tests.</div>
+      <div class="prompt-block"><span class="prompt-label">Descubrir agentes</span><button class="prompt-copy" onclick="copyPrompt(this)">copiar</button>Haceme preguntas sobre mi día a día y mis tareas repetitivas. Basándote en mis respuestas, sugerí 3 agentes que podrían automatizarlas. Para cada uno: qué haría, qué herramientas necesita, cuánto tiempo me ahorraría por semana.</div>
+      <div class="prompt-block"><span class="prompt-label">Guardar progreso en Obsidian</span><button class="prompt-copy" onclick="copyPrompt(this)">copiar</button>Guardá un resumen de lo que hicimos hoy en mi vault. Creá una nota en /diario con la fecha, los cambios principales, decisiones tomadas y lo que queda pendiente. Conectá con wikilinks a las notas de proyecto relevantes.</div>
+      <div class="prompt-block"><span class="prompt-label">Réplica de diseño web</span><button class="prompt-copy" onclick="copyPrompt(this)">copiar</button>Esta es la landing page [URL]. Replicá el layout y espaciado, la tipografía, los patrones de animación y la paleta de colores. Usá el skill UI UX Pro Max y Tailwind CSS para construir un sitio completamente responsive.</div>
+    </div></div>
+  </div>
+
+  <div class="accordion" id="acc-ref-mcp" data-types="cmd">
+    <div class="acc-header" onclick="toggleAcc('acc-ref-mcp')">
+      <div class="acc-title"><span class="acc-num">⚡</span><span class="acc-type-badge badge-cmd">comando</span><span class="acc-label">Configuración .mcp.json completa</span></div>
+      <div class="acc-actions"><button class="acc-fav" onclick="event.stopPropagation();toggleFav('acc-ref-mcp',this)">⭐</button><div class="acc-icon">+</div></div>
+    </div>
+    <div class="acc-body"><div class="acc-content">
+      <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">copiar</button>
+{
+  "mcpServers": {
+    <span class="comment">// Supadata — transcribir videos</span>
+    "supadata": {
+      "command": "npx", "args": ["-y", "supadata-mcp"],
+      "env": { "SUPADATA_API_KEY": "tu-key" }
+    },
+    <span class="comment">// Apify — web scraping</span>
+    "apify": {
+      "command": "npx", "args": ["-y", "@anthropic-ai/mcp-apify"],
+      "env": { "APIFY_TOKEN": "tu-token" }
+    },
+    <span class="comment">// NanoBanana — generar imágenes con Gemini</span>
+    "nanobanana": {
+      "command": "npx", "args": ["-y", "nanobanana-mcp-server"],
+      "env": { "GEMINI_API_KEY": "tu-key" }
+    },
+    <span class="comment">// Playwright — navegador propio</span>
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@anthropic-ai/claude-code-playwright"]
+    }
+  }
+}</div>
+    </div></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <span>Claude: de 0 a agentes · 2026</span>
+  <span>Por <a href="https://github.com/davidtaranto96" id="footer-author">@davidtaranto96</a> · Basado en <a href="https://www.tododeia.com/community" target="_blank">tododeia.com/community</a></span>
+</div>
+
+</div><!-- /wrapper -->
+
+<script>
+// ── STATE ──
+let currentFilter = 'all';
+let favorites = JSON.parse(localStorage.getItem('guia-favs') || '{}');
+const tabSections = ['inicio','fundamentos','web','marketing','agentes','productividad','referencia'];
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded', () => {
+  restoreFavs();
+  setupSearch();
+});
+
+// ── SECTION NAV ──
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('sec-' + id)?.classList.add('active');
+  const idx = tabSections.indexOf(id);
+  document.querySelectorAll('.tab-btn')[idx]?.classList.add('active');
+  window.scrollTo({top:0, behavior:'smooth'});
+  // clear search when switching
+  if (currentFilter !== 'fav') {
+    clearSearch(false);
+  }
+  applyFilter();
+}
+
+// ── ACCORDION ──
+function toggleAcc(id) {
+  document.getElementById(id)?.classList.toggle('open');
+}
+
+// ── COPY CODE ──
+function copyCode(btn) {
+  const block = btn.parentElement;
+  const lines = Array.from(block.childNodes)
+    .filter(n => n.nodeType === Node.TEXT_NODE || (n.nodeType === Node.ELEMENT_NODE && !n.classList.contains('copy-btn')))
+    .map(n => n.textContent).join('').replace(/^copiar\n?|^copiado!\n?/,'').trim();
+  navigator.clipboard.writeText(lines).then(() => {
+    btn.textContent = 'copiado!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'copiar'; btn.classList.remove('copied'); }, 1800);
+  });
+}
+
+// ── COPY PROMPT ──
+function copyPrompt(btn) {
+  const block = btn.parentElement;
+  const text = Array.from(block.childNodes)
+    .filter(n => !(n.nodeType === Node.ELEMENT_NODE && (n.classList.contains('prompt-label') || n.classList.contains('prompt-copy'))))
+    .map(n => n.textContent).join('').trim();
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'copiado!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'copiar'; btn.classList.remove('copied'); }, 1800);
+  });
+}
+
+// ── FAVORITES (accordions) ──
+function toggleFav(id, btn) {
+  favorites[id] = !favorites[id];
+  localStorage.setItem('guia-favs', JSON.stringify(favorites));
+  btn.classList.toggle('active', favorites[id]);
+  document.getElementById(id)?.classList.toggle('fav-highlight', favorites[id]);
+  showToast(favorites[id] ? '⭐ Guardado en favoritos' : '✕ Eliminado de favoritos');
+  if (currentFilter === 'fav') applyFilter();
+}
+
+// ── FAVORITES (cards) ──
+function toggleCardFav(btn, id) {
+  favorites[id] = !favorites[id];
+  localStorage.setItem('guia-favs', JSON.stringify(favorites));
+  btn.classList.toggle('active', favorites[id]);
+  showToast(favorites[id] ? '⭐ Guardado en favoritos' : '✕ Eliminado de favoritos');
+}
+
+function restoreFavs() {
+  Object.entries(favorites).forEach(([id, val]) => {
+    if (!val) return;
+    // accordion fav buttons
+    const acc = document.getElementById(id);
+    if (acc) {
+      acc.classList.add('fav-highlight');
+      const btn = acc.querySelector('.acc-fav');
+      if (btn) btn.classList.add('active');
+    }
+    // card fav buttons
+    const cardBtn = document.querySelector(`[data-id="${id}"]`);
+    if (cardBtn) cardBtn.classList.add('active');
+  });
+}
+
+// ── FILTER ──
+function setFilter(type, btn) {
+  currentFilter = type;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  if (type === 'fav') {
+    showFavSection();
+  } else {
+    hideFavSection();
+    applyFilter();
+  }
+}
+
+function applyFilter() {
+  if (currentFilter === 'fav') return;
+  const query = document.getElementById('searchInput').value.trim().toLowerCase();
+  const accs = document.querySelectorAll('.accordion');
+  let visible = 0;
+
+  accs.forEach(acc => {
+    const types = (acc.dataset.types || '').split(' ');
+    const typeMatch = currentFilter === 'all' || types.includes(currentFilter);
+    const text = acc.textContent.toLowerCase();
+    const queryMatch = !query || text.includes(query);
+    const show = typeMatch && queryMatch;
+    acc.dataset.hidden = show ? 'false' : 'true';
+    if (show) visible++;
+    if (query && show) highlightText(acc, query);
+    else removeHighlight(acc);
+  });
+
+  updateCount(visible, query);
+}
+
+function showFavSection() {
+  // show ALL sections' accordions at once
+  document.querySelectorAll('.section').forEach(s => {
+    s.style.display = 'block';
+  });
+  document.querySelectorAll('.section-header').forEach(h => h.style.display = 'none');
+
+  const accs = document.querySelectorAll('.accordion');
+  let hasFav = false;
+  accs.forEach(acc => {
+    const isFav = favorites[acc.id];
+    acc.dataset.hidden = isFav ? 'false' : 'true';
+    if (isFav) hasFav = true;
+  });
+
+  const emptyEl = document.getElementById('fav-empty');
+  if (!hasFav) {
+    if (!emptyEl) {
+      const el = document.createElement('div');
+      el.id = 'fav-empty';
+      el.innerHTML = '<div class="big">⭐</div><p>Todavía no tenés favoritos.<br>Hacé clic en ⭐ en cualquier sección para guardarla acá.</p>';
+      el.style.cssText = 'text-align:center;padding:60px 20px;color:var(--text3);position:relative;z-index:1;';
+      document.querySelector('.wrapper').insertBefore(el, document.querySelector('.footer'));
+    } else {
+      emptyEl.style.display = 'block';
+    }
+  } else if (emptyEl) {
+    emptyEl.style.display = 'none';
+  }
+}
+
+function hideFavSection() {
+  document.querySelectorAll('.section').forEach(s => s.style.display = '');
+  document.querySelectorAll('.section-header').forEach(h => h.style.display = '');
+  const emptyEl = document.getElementById('fav-empty');
+  if (emptyEl) emptyEl.style.display = 'none';
+  // restore active section
+  const activeTab = document.querySelector('.tab-btn.active');
+  if (activeTab) {
+    const idx = Array.from(document.querySelectorAll('.tab-btn')).indexOf(activeTab);
+    document.querySelectorAll('.section').forEach((s,i) => {
+      s.classList.toggle('active', i === idx);
+    });
+  }
+}
+
+// ── SEARCH ──
+function setupSearch() {
+  const input = document.getElementById('searchInput');
+  const clearBtn = document.getElementById('searchClear');
+
+  input.addEventListener('input', () => {
+    const hasVal = input.value.length > 0;
+    clearBtn.classList.toggle('visible', hasVal);
+    clearBtn.style.display = hasVal ? 'block' : 'none';
+    if (currentFilter === 'fav') return;
+    if (hasVal) {
+      // show all sections for search
+      document.querySelectorAll('.section').forEach(s => s.style.display = 'block');
+      document.querySelectorAll('.section-header').forEach(h => h.style.display = 'none');
+    } else {
+      hideFavSection();
+    }
+    applyFilter();
+  });
+
+  clearBtn.addEventListener('click', () => clearSearch(true));
+}
+
+function clearSearch(resetNav) {
+  const input = document.getElementById('searchInput');
+  input.value = '';
+  document.getElementById('searchClear').classList.remove('visible');
+  document.getElementById('searchClear').style.display = 'none';
+  document.getElementById('searchCount').classList.remove('visible');
+  removeHighlight(document);
+  if (resetNav) {
+    hideFavSection();
+    applyFilter();
+  }
+}
+
+function updateCount(n, query) {
+  const el = document.getElementById('searchCount');
+  if (query) {
+    el.textContent = n === 0 ? 'Sin resultados para "' + query + '"' : n + ' sección' + (n !== 1 ? 'es' : '') + ' encontrada' + (n !== 1 ? 's' : '');
+    el.classList.add('visible');
+  } else {
+    el.classList.remove('visible');
+  }
+}
+
+function highlightText(el, query) {
+  const labels = el.querySelectorAll('.acc-label');
+  labels.forEach(label => {
+    const orig = label.dataset.orig || label.textContent;
+    label.dataset.orig = orig;
+    const regex = new RegExp('(' + query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')', 'gi');
+    label.innerHTML = orig.replace(regex, '<span class="hl">$1</span>');
+  });
+}
+
+function removeHighlight(scope) {
+  const labels = (scope.querySelectorAll ? scope : document).querySelectorAll('.acc-label[data-orig]');
+  labels.forEach(label => {
+    label.textContent = label.dataset.orig;
+    delete label.dataset.orig;
+  });
+}
+
+// ── TOAST ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ── AUTHOR ── (editable via URL param or localStorage)
+const savedUser = localStorage.getItem('github-user');
+if (savedUser) setAuthor(savedUser);
+
+function setAuthor(user) {
+  if (!user) return;
+  const clean = user.replace(/^@/,'');
+  const initial = clean[0]?.toUpperCase() || 'G';
+  document.getElementById('author-name').textContent = '@' + clean;
+  document.getElementById('author-avatar').textContent = initial;
+  document.getElementById('author-link').href = 'https://github.com/' + clean;
+  document.getElementById('footer-author').textContent = '@' + clean;
+  document.getElementById('footer-author').href = 'https://github.com/' + clean;
+  localStorage.setItem('github-user', clean);
+}
+
+// Allow user to click avatar to update username
+document.getElementById('author-link').addEventListener('click', e => {
+  const user = prompt('Actualizar usuario de GitHub (sin @):', 'davidtaranto96');
+  if (user && user.trim()) { e.preventDefault(); setAuthor(user.trim()); }
+});
+</script>
+</body>
+</html>
