@@ -219,6 +219,63 @@ h4:first-child{margin-top:0;}
   .toolbar{flex-direction:column;align-items:stretch;}
   .search-wrap{max-width:100%;}
 }
+
+/* ── REVEAL ANIMATIONS ── */
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .7s cubic-bezier(.22,.61,.36,1),transform .7s cubic-bezier(.22,.61,.36,1);}
+.reveal.in{opacity:1;transform:none;}
+.section.active{animation:fadeIn .35s ease-out;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ── A11Y ── */
+:focus-visible{outline:2px solid var(--accent2);outline-offset:3px;border-radius:4px;}
+.tab-btn:focus-visible,.filter-btn:focus-visible,.acc-header:focus-visible,.copy-btn:focus-visible,.prompt-copy:focus-visible{outline-offset:2px;}
+
+/* ── NOVEDADES TAG ── */
+.tag-novedades{background:linear-gradient(135deg,rgba(255,159,69,.15),rgba(255,107,107,.12));color:var(--orange);border:1px solid rgba(255,159,69,.3);}
+.badge-novedad{background:rgba(255,159,69,.1);color:var(--orange);border:1px solid rgba(255,159,69,.25);}
+.tab-btn.tab-novedad{position:relative;}
+.tab-btn.tab-novedad::after{content:'';position:absolute;top:8px;right:8px;width:6px;height:6px;border-radius:50%;background:var(--orange);box-shadow:0 0 8px var(--orange);animation:pulse 2s infinite;}
+.tab-btn.active.tab-novedad::after{background:#0d0f12;box-shadow:none;}
+
+/* ── NOVEDADES HERO BLOCK ── */
+.novedad-banner{background:linear-gradient(135deg,rgba(255,159,69,.06) 0%,rgba(124,111,255,.06) 100%);border:1px solid rgba(255,159,69,.18);border-radius:var(--radius-lg);padding:22px 24px;margin-bottom:36px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
+.novedad-banner .nov-pulse{flex-shrink:0;width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--orange),var(--accent3));display:grid;place-items:center;font-size:20px;}
+.novedad-banner .nov-text{flex:1;min-width:240px;}
+.novedad-banner .nov-text strong{display:block;font-size:14px;color:var(--text);margin-bottom:3px;letter-spacing:-.005em;}
+.novedad-banner .nov-text span{font-size:12.5px;color:var(--text2);}
+.novedad-banner .nov-cta{font-family:'DM Mono',monospace;font-size:12px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);padding:8px 16px;border-radius:100px;cursor:pointer;transition:all .2s;text-decoration:none;}
+.novedad-banner .nov-cta:hover{border-color:var(--orange);color:var(--orange);transform:translateY(-1px);}
+
+/* ── NOVEDADES TIMELINE ── */
+.timeline-nov{position:relative;margin:14px 0 6px;padding-left:32px;}
+.timeline-nov::before{content:'';position:absolute;left:7px;top:8px;bottom:8px;width:2px;background:linear-gradient(180deg,var(--orange),var(--accent3),var(--accent2),transparent);opacity:.5;}
+.t-event{position:relative;padding-bottom:18px;}
+.t-event:last-child{padding-bottom:4px;}
+.t-event::before{content:'';position:absolute;left:-31px;top:5px;width:16px;height:16px;border-radius:50%;background:var(--bg);border:2px solid var(--orange);box-shadow:0 0 0 4px rgba(255,159,69,.1);}
+.t-event.purple::before{border-color:var(--accent2);box-shadow:0 0 0 4px rgba(124,111,255,.1);}
+.t-event.green::before{border-color:var(--accent);box-shadow:0 0 0 4px rgba(200,240,96,.1);}
+.t-event.blue::before{border-color:var(--accent4);box-shadow:0 0 0 4px rgba(96,212,240,.1);}
+.t-date{font-family:'DM Mono',monospace;font-size:10.5px;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;}
+.t-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:5px;letter-spacing:-.005em;}
+.t-body{font-size:13px;color:var(--text2);line-height:1.6;}
+
+/* ── HIGHLIGHT CARDS (NOVEDADES) ── */
+.highlight-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin:16px 0;}
+.highlight-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;display:flex;flex-direction:column;gap:8px;position:relative;transition:transform .2s,border-color .2s;}
+.highlight-card:hover{transform:translateY(-2px);border-color:var(--border2);}
+.highlight-card .hc-num{font-family:'DM Mono',monospace;font-size:24px;font-weight:500;letter-spacing:-.02em;}
+.highlight-card .hc-title{font-size:13px;font-weight:600;color:var(--text);}
+.highlight-card .hc-desc{font-size:12px;color:var(--text2);line-height:1.55;}
+.highlight-card.green .hc-num{color:var(--accent);}
+.highlight-card.purple .hc-num{color:var(--accent2);}
+.highlight-card.orange .hc-num{color:var(--orange);}
+.highlight-card.blue .hc-num{color:var(--accent4);}
+
+/* ── REDUCED MOTION ── */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important;}
+  .reveal{opacity:1;transform:none;}
+}
 </style>
 </head>
 <body>
@@ -227,7 +284,7 @@ h4:first-child{margin-top:0;}
 <!-- HERO -->
 <div class="hero">
   <div class="hero-top">
-    <div class="hero-badge">Guía completa · 2026</div>
+    <div class="hero-badge">Actualizado · Mayo 2026</div>
     <a class="author-badge" href="https://github.com/davidtaranto96" target="_blank" id="author-link">
       <div class="author-avatar" id="author-avatar">D</div>
       <span id="author-name">@davidtaranto96</span>
@@ -236,10 +293,19 @@ h4:first-child{margin-top:0;}
   <h1>Claude:<br><em>de 0 a agentes</em></h1>
   <p class="hero-sub">Todo lo que necesitás saber para pasar de usuario básico a construir agentes que trabajan mientras dormís. Conceptos, comandos, prompts y ejemplos reales.</p>
   <div class="hero-stats">
-    <div class="stat"><span class="stat-num">6</span><span class="stat-label">Módulos</span></div>
-    <div class="stat"><span class="stat-num">33+</span><span class="stat-label">Herramientas</span></div>
-    <div class="stat"><span class="stat-num">50+</span><span class="stat-label">Comandos</span></div>
-    <div class="stat"><span class="stat-num">30+</span><span class="stat-label">Prompts listos</span></div>
+    <div class="stat"><span class="stat-num">7</span><span class="stat-label">Módulos</span></div>
+    <div class="stat"><span class="stat-num">40+</span><span class="stat-label">Herramientas</span></div>
+    <div class="stat"><span class="stat-num">60+</span><span class="stat-label">Comandos</span></div>
+    <div class="stat"><span class="stat-num">35+</span><span class="stat-label">Prompts listos</span></div>
+  </div>
+
+  <div class="novedad-banner">
+    <div class="nov-pulse">🆕</div>
+    <div class="nov-text">
+      <strong>Novedades de mayo 2026 — Opus 4.7, Memory en agentes, Plugins marketplace</strong>
+      <span>Mirá todo lo que salió este mes en el ecosistema de Claude. Actualizaciones reales, no recap.</span>
+    </div>
+    <a class="nov-cta" onclick="showSection('novedades');return false;" href="#novedades">Ver novedades →</a>
   </div>
 </div>
 
@@ -263,6 +329,7 @@ h4:first-child{margin-top:0;}
 <!-- NAV TABS -->
 <div class="nav-tabs">
   <button class="tab-btn active" onclick="showSection('inicio')">🗺 Inicio</button>
+  <button class="tab-btn tab-novedad" onclick="showSection('novedades')">🆕 Novedades</button>
   <button class="tab-btn" onclick="showSection('fundamentos')">01 · Fundamentos</button>
   <button class="tab-btn" onclick="showSection('web')">02 · Diseño Web</button>
   <button class="tab-btn" onclick="showSection('marketing')">03 · Marketing</button>
@@ -378,6 +445,186 @@ h4:first-child{margin-top:0;}
 <span class="cmd">claude --version</span>
 <span class="cmd">claude doctor</span></div>
       <div class="tip">Evitá <code style="font-family:monospace;color:var(--accent3);font-size:12px">npm install -g @anthropic-ai/claude-code</code> — ese método está deprecado.</div>
+    </div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ NOVEDADES ══════════════════════════════════════ -->
+<div id="sec-novedades" class="section">
+  <div class="section-header">
+    <div class="eyebrow" style="color:var(--orange)">🆕 Mayo 2026</div>
+    <h2>Novedades del ecosistema</h2>
+    <p>Todo lo que salió este último mes en Claude Code, los modelos y la API. Actualizado a la fecha — sin contenido viejo disfrazado de nuevo.</p>
+  </div>
+
+  <!-- TIMELINE -->
+  <div class="accordion open reveal" id="acc-timeline" data-types="concepto">
+    <div class="acc-header" onclick="toggleAcc('acc-timeline')">
+      <div class="acc-title"><span class="acc-num">📅</span><span class="acc-type-badge badge-novedad">timeline</span><span class="acc-label">Lo que pasó este mes — orden cronológico</span></div>
+      <div class="acc-actions"><button class="acc-fav" onclick="event.stopPropagation();toggleFav('acc-timeline',this)">⭐</button><div class="acc-icon">+</div></div>
+    </div>
+    <div class="acc-body"><div class="acc-content">
+      <div class="timeline-nov">
+        <div class="t-event purple">
+          <div class="t-date">23 abr 2026 · Public beta</div>
+          <div class="t-title">Memory en Managed Agents</div>
+          <div class="t-body">Anthropic agregó memoria persistente a sus Managed Agents. Cada agente tiene un directorio <code style="font-size:11px;color:var(--accent2)">/mnt/memory/</code> donde lee y escribe archivos con bash, igual que cualquier filesystem. Sobrevive crashes, se versiona y se comparte entre agentes del mismo workspace. Por fin los agentes no se olvidan de todo entre sesiones.</div>
+        </div>
+        <div class="t-event">
+          <div class="t-date">16 abr 2026 · GA</div>
+          <div class="t-title">Claude Opus 4.7 — disponible para todos</div>
+          <div class="t-body">Salió en Claude.ai, API, Bedrock, Vertex y Foundry. <strong>70% en CursorBench</strong> (+12 puntos vs 4.6), 3x más tareas de producción resueltas, visión 98.5% (3.75MP de resolución). Trae <code style="font-size:11px;color:var(--orange)">xhigh</code> effort, comando <code style="font-size:11px;color:var(--orange)">/ultrareview</code>, auto mode para Max y task budgets en beta. <strong>Mismo precio que 4.6:</strong> $5/M input, $25/M output.</div>
+        </div>
+        <div class="t-event green">
+          <div class="t-date">Mar 2026 · Stable</div>
+          <div class="t-title">Plugins marketplace consolidado</div>
+          <div class="t-body">Los plugins (que arrancaron en beta en oct 2025) ya son parte estable del flujo. <strong>4.200+ skills, 770+ MCP servers, 2.500+ marketplaces.</strong> El marketplace oficial de Anthropic (<code style="font-size:11px;color:var(--accent)">claude-plugins-official</code>) aparece automático al iniciar Claude Code.</div>
+        </div>
+        <div class="t-event blue">
+          <div class="t-date">Feb 2026 · Release</div>
+          <div class="t-title">Sonnet 4.6 supera al Opus anterior</div>
+          <div class="t-body">Primer Sonnet en superar al Opus de la generación anterior en coding. <strong>58.3% en ARC-AGI-2</strong> (vs 13.6% antes — un salto enorme). $3/M input, $15/M output (40% más barato que Opus). Ideal para coding rutinario y edits livianos donde no necesitás reasoning power máximo.</div>
+        </div>
+        <div class="t-event">
+          <div class="t-date">Q1 2026 · Beta</div>
+          <div class="t-title">4 capabilities nuevas en la API</div>
+          <div class="t-body">Code execution tool (Python sandboxed para data analysis), MCP connector (conexión nativa a servers MCP externos), Files API (almacenar y reusar archivos entre sesiones) y prompt cache de hasta 1 hora (60 min de contexto cacheado más barato).</div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- OPUS 4.7 -->
+  <div class="accordion reveal" id="acc-opus47" data-types="concepto cmd">
+    <div class="acc-header" onclick="toggleAcc('acc-opus47')">
+      <div class="acc-title"><span class="acc-num">01</span><span class="acc-type-badge badge-novedad">novedad</span><span class="acc-label">Opus 4.7 — qué cambia en la práctica</span></div>
+      <div class="acc-actions"><button class="acc-fav" onclick="event.stopPropagation();toggleFav('acc-opus47',this)">⭐</button><div class="acc-icon">+</div></div>
+    </div>
+    <div class="acc-body"><div class="acc-content">
+      <p style="font-size:13.5px;color:var(--text2);margin-bottom:14px;">Opus 4.7 está GA desde el 16 de abril. No es solo "un poco mejor" — los benchmarks de coding pegaron un salto notable y vienen 3 features nuevas que cambian el flujo de Claude Code.</p>
+      <div class="highlight-grid">
+        <div class="highlight-card orange"><div class="hc-num">70%</div><div class="hc-title">CursorBench</div><div class="hc-desc">+12 puntos vs Opus 4.6 (58%). El benchmark de codear en repos reales.</div></div>
+        <div class="highlight-card green"><div class="hc-num">3x</div><div class="hc-title">Tareas resueltas</div><div class="hc-desc">Tres veces más tareas de producción terminadas vs predecesor.</div></div>
+        <div class="highlight-card blue"><div class="hc-num">98.5%</div><div class="hc-title">Visión</div><div class="hc-desc">Sube de 54.5%. Imágenes 3.75MP — 3x más resolución que 4.6.</div></div>
+        <div class="highlight-card purple"><div class="hc-num">$5 / $25</div><div class="hc-title">Mismo precio</div><div class="hc-desc">Por millón de tokens (input/output). No subió ni un dólar.</div></div>
+      </div>
+      <h4>Las 3 features nuevas en Claude Code</h4>
+      <div class="two-col">
+        <div class="concept-box orange"><strong>xhigh effort</strong><br>Nuevo nivel arriba de "high". Para tareas que requieren razonamiento profundo sostenido — refactors grandes, debugging críptico, arquitectura. Más tokens, mejor resultado.</div>
+        <div class="concept-box purple"><strong>/ultrareview</strong><br>Comando nuevo. Lanza review multi-agente de tu branch actual o de un PR. Es el setting de "200 IQ developer dándote segunda opinión". Bookea tiempo de cómputo, no es gratis.</div>
+      </div>
+      <div class="concept-box highlight"><strong>Auto mode (para Max users)</strong> + <strong>Task budgets (beta)</strong> · El primero te deja decirle "hacé esto y no me preguntes". El segundo permite poner techo de tokens/tiempo por tarea para que un loop no se vaya de presupuesto.</div>
+      <div class="tip">Si tenías scripts apuntando a <code style="font-size:11px;color:var(--accent)">claude-opus-4-6</code>, podés migrar a <code style="font-size:11px;color:var(--accent)">claude-opus-4-7</code>. Mismo SDK, misma API. La doc oficial recomienda migrar para todas las tasks de producción.</div>
+    </div></div>
+  </div>
+
+  <!-- MEMORY EN AGENTES -->
+  <div class="accordion reveal" id="acc-agent-memory" data-types="concepto">
+    <div class="acc-header" onclick="toggleAcc('acc-agent-memory')">
+      <div class="acc-title"><span class="acc-num">02</span><span class="acc-type-badge badge-novedad">novedad</span><span class="acc-label">Memory en Managed Agents — agentes que recuerdan</span></div>
+      <div class="acc-actions"><button class="acc-fav" onclick="event.stopPropagation();toggleFav('acc-agent-memory',this)">⭐</button><div class="acc-icon">+</div></div>
+    </div>
+    <div class="acc-body"><div class="acc-content">
+      <div class="concept-box orange"><strong>El problema viejo:</strong> Cada vez que arrancabas un agente, no recordaba nada de la sesión anterior. Tenías que re-darle todo el contexto. Si el agente crasheaba a mitad de tarea, perdías todo.</div>
+      <div class="concept-box highlight"><strong>La solución:</strong> Cada agente tiene ahora un workspace persistente montado en <code style="font-size:11px;color:var(--accent)">/mnt/memory/</code>. Es un directorio normal — el agente lee y escribe ahí con las mismas tools de bash y filesystem que ya usa. Sobrevive crashes, se versiona, y se comparte entre agentes del mismo workspace.</div>
+      <h4>Cómo lo usa el agente</h4>
+      <div class="code-block"><button class="copy-btn" onclick="copyCode(this)" aria-label="Copiar código">copiar</button>
+<span class="comment"># El agente, internamente, hace algo así</span>
+<span class="cmd">cat /mnt/memory/last-decisions.md</span>     <span class="comment"># lee qué decidió la última vez</span>
+<span class="cmd">echo "..." >> /mnt/memory/progress.md</span>  <span class="comment"># escribe progreso</span>
+<span class="cmd">ls /mnt/memory/projects/</span>                <span class="comment"># navega su propio archivo</span></div>
+      <div class="prompt-block"><span class="prompt-label">Prompt — sistema de memoria propia</span><button class="prompt-copy" onclick="copyPrompt(this)" aria-label="Copiar prompt">copiar</button>Mantené un archivo /mnt/memory/STATE.md con el estado actual del proyecto: qué se hizo, qué falta, decisiones tomadas. Antes de cada nueva acción, leelo. Después de cada acción importante, actualizalo. Si crasheás o reiniciás, recuperá contexto leyendo ese archivo primero.</div>
+      <div class="tip">Esta memoria es <strong>workspace-scoped</strong> — los agentes que comparten workspace ven los mismos archivos. Para agentes con info sensible, usá workspaces separados.</div>
+    </div></div>
+  </div>
+
+  <!-- PLUGINS MARKETPLACE -->
+  <div class="accordion reveal" id="acc-plugins-marketplace" data-types="cmd concepto">
+    <div class="acc-header" onclick="toggleAcc('acc-plugins-marketplace')">
+      <div class="acc-title"><span class="acc-num">03</span><span class="acc-type-badge badge-novedad">novedad</span><span class="acc-label">Plugins marketplace — 4.200+ skills al alcance</span></div>
+      <div class="acc-actions"><button class="acc-fav" onclick="event.stopPropagation();toggleFav('acc-plugins-marketplace',this)">⭐</button><div class="acc-icon">+</div></div>
+    </div>
+    <div class="acc-body"><div class="acc-content">
+      <p style="font-size:13.5px;color:var(--text2);margin-bottom:14px;">El marketplace de plugins arrancó en beta en octubre 2025 y ya está consolidado. <strong>32.000+ plugins activos</strong> con <strong>282.000+ componentes</strong>. Es donde está pasando todo el ecosistema.</p>
+      <div class="highlight-grid">
+        <div class="highlight-card green"><div class="hc-num">161K</div><div class="hc-title">Skills</div><div class="hc-desc">Conjuntos de instrucciones que enseñan comportamientos específicos.</div></div>
+        <div class="highlight-card purple"><div class="hc-num">58K</div><div class="hc-title">Commands</div><div class="hc-desc">Slash-commands listos para usar.</div></div>
+        <div class="highlight-card orange"><div class="hc-num">48K</div><div class="hc-title">Agents</div><div class="hc-desc">Sub-agentes especializados.</div></div>
+        <div class="highlight-card blue"><div class="hc-num">7K+</div><div class="hc-title">MCP Servers</div><div class="hc-desc">Conexiones a sistemas externos (Figma, Playwright, Postgres).</div></div>
+      </div>
+      <h4>Marketplace oficial de Anthropic</h4>
+      <div class="code-block"><button class="copy-btn" onclick="copyCode(this)" aria-label="Copiar código">copiar</button>
+<span class="comment"># Listar plugins disponibles del marketplace oficial</span>
+<span class="cmd">/plugin list</span>
+
+<span class="comment"># Agregar un marketplace de terceros</span>
+<span class="cmd">/plugin marketplace add &lt;org&gt;/&lt;repo&gt;</span>
+
+<span class="comment"># Instalar un plugin específico</span>
+<span class="cmd">/plugin install &lt;nombre&gt;@&lt;marketplace&gt;</span></div>
+      <div class="concept-box blue"><strong>Skills + commands unificados (2026):</strong> antes había <code style="font-size:11px">.claude/commands/</code> y skills separados. Ahora todo se unificó en <code style="font-size:11px;color:var(--accent)">.claude/skills/</code>. Cada skill expone automáticamente una interfaz <code style="font-size:11px;color:var(--accent)">/slash-command</code>. Los archivos viejos en <code style="font-size:11px">.claude/commands/</code> siguen funcionando, pero el approach recomendado es skills.</div>
+      <div class="tip">Los MCP servers más usados en 2026 según los datos del marketplace: <strong>Figma, Playwright, Vercel, PostgreSQL, GitHub</strong>. Playwright es el que cambió el juego — Claude puede navegar tu app, hacer click, verificar comportamiento real.</div>
+    </div></div>
+  </div>
+
+  <!-- API NEW CAPABILITIES -->
+  <div class="accordion reveal" id="acc-api-news" data-types="concepto cmd">
+    <div class="acc-header" onclick="toggleAcc('acc-api-news')">
+      <div class="acc-title"><span class="acc-num">04</span><span class="acc-type-badge badge-novedad">novedad</span><span class="acc-label">4 nuevas capabilities en la API — Files, Code Exec, MCP connector, Cache 1h</span></div>
+      <div class="acc-actions"><button class="acc-fav" onclick="event.stopPropagation();toggleFav('acc-api-news',this)">⭐</button><div class="acc-icon">+</div></div>
+    </div>
+    <div class="acc-body"><div class="acc-content">
+      <div class="two-col">
+        <div class="concept-box highlight"><strong>1. Code execution tool</strong><br>Claude ejecuta Python en sandbox. Recibe un dataset, te devuelve análisis y visualizaciones reales. Pasa de "te escribo el código" a "lo corrí y acá está el resultado".</div>
+        <div class="concept-box purple"><strong>2. MCP connector</strong><br>Antes tenías que correr el MCP server local. Ahora la API se conecta directo a servers MCP remotos. Claude accede a tu Postgres en cloud, tu Figma, tu GitHub — sin proxy local.</div>
+      </div>
+      <div class="two-col">
+        <div class="concept-box blue"><strong>3. Files API</strong><br>Subís un PDF/CSV/imagen una vez, Claude lo reusa entre sesiones por <code style="font-size:11px;color:var(--accent4)">file_id</code>. Sin re-uploadear el mismo doc en cada llamada. Para agentes que trabajan sobre el mismo dataset.</div>
+        <div class="concept-box orange"><strong>4. Prompt cache 1 hora</strong><br>El cache antes era de 5 minutos. Ahora hasta 60 minutos. Para agentes con system prompts grandes — el primer hit cuesta normal, los siguientes 60 min son mucho más baratos.</div>
+      </div>
+      <h4>Cuándo usar cada una</h4>
+      <div class="table-wrap"><table>
+        <tr><th>Capability</th><th>Cuándo</th><th>Ejemplo</th></tr>
+        <tr><td>Code execution</td><td>Análisis de datos, gráficos</td><td>"Analizá este CSV y graficá la tendencia"</td></tr>
+        <tr><td>MCP connector</td><td>Conexión a servicios cloud</td><td>Agente que consulta tu Postgres prod</td></tr>
+        <tr><td>Files API</td><td>Documentos reusables</td><td>Manual de marca subido 1 vez, usado en 50 prompts</td></tr>
+        <tr><td>Cache 1h</td><td>Agentes con prompts largos</td><td>System prompt de 5K tokens, repetido cada 30 seg</td></tr>
+      </table></div>
+      <div class="warning">Todas estas capabilities están en <strong>beta</strong>. Funcionan, pero las APIs pueden cambiar. Anthropic suele dar deprecation warnings de varias semanas — leé el changelog.</div>
+    </div></div>
+  </div>
+
+  <!-- HOOKS UPDATES -->
+  <div class="accordion reveal" id="acc-hooks-2026" data-types="cmd concepto">
+    <div class="acc-header" onclick="toggleAcc('acc-hooks-2026')">
+      <div class="acc-title"><span class="acc-num">05</span><span class="acc-type-badge badge-novedad">novedad</span><span class="acc-label">Hooks + Subagents — fixes y features nuevas en Claude Code</span></div>
+      <div class="acc-actions"><button class="acc-fav" onclick="event.stopPropagation();toggleFav('acc-hooks-2026',this)">⭐</button><div class="acc-icon">+</div></div>
+    </div>
+    <div class="acc-body"><div class="acc-content">
+      <h4>Hooks · qué cambió</h4>
+      <div class="concept-box highlight"><strong>Flag <code style="font-size:11px;color:var(--accent)">--bare</code> en <code style="font-size:11px;color:var(--accent)">-p</code>:</strong> para llamadas scripteadas que no necesitan hooks/LSP/plugins. Más rápido y predecible cuando Claude Code corre dentro de un script propio.</div>
+      <div class="concept-box purple"><strong>Métricas en PostToolUse:</strong> los inputs ahora incluyen <code style="font-size:11px;color:var(--accent2)">duration_ms</code> (tiempo real de ejecución, sin contar prompts de permisos). Permite hookear telemetría real al uso de tools.</div>
+      <div class="concept-box blue"><strong>Override de output:</strong> los hooks PostToolUse ahora pueden reemplazar el output del tool con <code style="font-size:11px;color:var(--accent4)">hookSpecificOutput.updatedToolOutput</code> (antes era solo MCP). Permite filtrar/sanitizar output antes de que Claude lo vea.</div>
+      <h4>Subagents · fixes importantes</h4>
+      <ul style="font-size:13.5px;color:var(--text2);padding-left:20px;line-height:1.7;margin:8px 0 14px;">
+        <li><strong>tmux fix:</strong> los subagents dejaron de fallar permanentemente con "Could not determine pane count" después de matar/renumerar ventanas.</li>
+        <li><strong>Reconfig en paralelo:</strong> al cambiar config de subagents y MCP servers, los servers se reconectan en paralelo, no serial. Mucho más rápido en setups con muchos MCPs.</li>
+        <li><strong>Model fix:</strong> subagents con <code style="font-size:11px;color:var(--accent)">model: opus|sonnet|haiku</code> ya no se downgradean silenciosamente a versiones viejas en Bedrock, Vertex y Foundry.</li>
+      </ul>
+      <div class="tip">Si tenés un setting con un nombre de evento de hook que Claude Code no reconoce, ya no se ignora todo el archivo. Solo se ignora ese hook puntual. Mucho más resiliente para configs grandes.</div>
+    </div></div>
+  </div>
+
+  <!-- WHAT'S NEXT -->
+  <div class="accordion reveal" id="acc-whats-next" data-types="concepto">
+    <div class="acc-header" onclick="toggleAcc('acc-whats-next')">
+      <div class="acc-title"><span class="acc-num">🔮</span><span class="acc-type-badge badge-novedad">próximo</span><span class="acc-label">Lo que viene — Sonnet 4.8 y más</span></div>
+      <div class="acc-actions"><button class="acc-fav" onclick="event.stopPropagation();toggleFav('acc-whats-next',this)">⭐</button><div class="acc-icon">+</div></div>
+    </div>
+    <div class="acc-body"><div class="acc-content">
+      <div class="concept-box blue"><strong>Sonnet 4.8 (rumores):</strong> sí, se saltea el "4.7" en Sonnet — no fue un bug, fue una decisión de naming. La línea Sonnet va detrás de la Opus medio paso. Se rumorea Q3 2026 con foco en velocidad de inferencia y costo más bajo. Sin fecha oficial todavía.</div>
+      <div class="concept-box purple"><strong>Computer Use estable:</strong> sigue siendo beta. Anthropic está iterando en estabilidad y precisión. Cuando salga GA, los agentes que controlan la PC van a poder shipearse a producción sin asterisco "experimental".</div>
+      <div class="tip">Para mantenerte al día sin esfuerzo: <strong>watcheá el repo <code style="font-size:11px;color:var(--accent)">anthropics/claude-code</code> en GitHub</strong> y suscribite a release notes de la API en <code style="font-size:11px;color:var(--accent)">platform.claude.com/docs/release-notes</code>. Esta sección Novedades del blog se va a actualizar mensualmente.</div>
     </div></div>
   </div>
 </div>
@@ -776,6 +1023,27 @@ h4:first-child{margin-top:0;}
       <div class="prompt-block"><span class="prompt-label">Prompt — QA automático</span><button class="prompt-copy" onclick="copyPrompt(this)">copiar</button>Abrí mi proyecto en http://localhost:3000. Navegá por todas las páginas del menú. En cada página: 1. Verificá errores en consola 2. Revisá que todos los botones sean clickeables 3. Confirmá que las imágenes cargan 4. Probá el formulario de contacto con datos de prueba. Generá un reporte con los problemas encontrados.</div>
     </div></div>
   </div>
+
+  <div class="accordion" id="acc-agent-mem-practical" data-types="concepto prompt">
+    <div class="acc-header" onclick="toggleAcc('acc-agent-mem-practical')">
+      <div class="acc-title"><span class="acc-num">06</span><span class="acc-type-badge badge-novedad">novedad</span><span class="acc-label">Agentes con memoria — patrones prácticos (abr 2026)</span></div>
+      <div class="acc-actions"><button class="acc-fav" onclick="event.stopPropagation();toggleFav('acc-agent-mem-practical',this)" aria-label="Guardar en favoritos">⭐</button><div class="acc-icon">+</div></div>
+    </div>
+    <div class="acc-body"><div class="acc-content">
+      <p style="font-size:13.5px;color:var(--text2);margin-bottom:14px;">Desde que Memory está disponible en Managed Agents (<a href="#novedades" onclick="showSection('novedades');return false;" style="color:var(--orange);text-decoration:none">ver Novedades</a>), los agentes tienen un <code style="font-size:11px;color:var(--accent)">/mnt/memory/</code> persistente. Estos son los patrones que más impacto tienen.</p>
+
+      <h4>Patrón 1 — Estado del proyecto</h4>
+      <div class="prompt-block"><span class="prompt-label">Prompt — agente con state file</span><button class="prompt-copy" onclick="copyPrompt(this)" aria-label="Copiar prompt">copiar</button>Mantené /mnt/memory/STATE.md con: ## Done, ## In Progress, ## Blocked, ## Decisions. Antes de cualquier acción, leé STATE.md y resumí el estado en 3 líneas. Después de completar algo, actualizá la sección correspondiente. Si encontrás un bloqueo, agregalo a Blocked con timestamp.</div>
+
+      <h4>Patrón 2 — Aprendizaje del usuario</h4>
+      <div class="prompt-block"><span class="prompt-label">Prompt — preferencias persistidas</span><button class="prompt-copy" onclick="copyPrompt(this)" aria-label="Copiar prompt">copiar</button>Cada vez que el usuario te corrija o exprese una preferencia ("usá pnpm, no npm" / "no me hagas resúmenes al final"), guardalo en /mnt/memory/preferences.md con formato: - DATE: rule (why). Antes de cada nueva tarea, leé este archivo y aplicá las reglas conocidas.</div>
+
+      <h4>Patrón 3 — Decisiones de arquitectura</h4>
+      <div class="concept-box purple"><strong>ADR ligero (Architecture Decision Record):</strong> el agente escribe en <code style="font-size:11px;color:var(--accent2)">/mnt/memory/decisions/YYYY-MM-DD-titulo.md</code> cada decisión que toma con el contexto. Cuando vuelva a tocar el tema, lee esos archivos antes y mantiene coherencia. Mucho más confiable que pedirle "acordate de X".</div>
+
+      <div class="warning"><strong>Workspace-scoped:</strong> agentes que comparten workspace ven los mismos archivos. Para info sensible (credenciales, datos de usuario distintos), separá workspaces o ponelos en archivos cifrados que solo ese agente abre.</div>
+    </div></div>
+  </div>
 </div>
 
 <!-- ══════════════════════════════════════ PRODUCTIVIDAD ══════════════════════════════════════ -->
@@ -859,6 +1127,31 @@ Haceme un análisis de inversión
 
 <span class="comment"># Automático diario</span>
 <span class="cmd">/loop 24h /investment-analysis</span></div>
+    </div></div>
+  </div>
+
+  <div class="accordion" id="acc-mcp-curated" data-types="cmd concepto">
+    <div class="acc-header" onclick="toggleAcc('acc-mcp-curated')">
+      <div class="acc-title"><span class="acc-num">05</span><span class="acc-type-badge badge-novedad">novedad</span><span class="acc-label">Los 5 MCP servers más usados en 2026 — el setup esencial</span></div>
+      <div class="acc-actions"><button class="acc-fav" onclick="event.stopPropagation();toggleFav('acc-mcp-curated',this)" aria-label="Guardar en favoritos">⭐</button><div class="acc-icon">+</div></div>
+    </div>
+    <div class="acc-body"><div class="acc-content">
+      <p style="font-size:13.5px;color:var(--text2);margin-bottom:14px;">Datos del ecosistema (mayo 2026): hay 7.000+ MCP servers disponibles, pero estos son los que aparecen en casi todos los setups serios. Si recién empezás, instalá estos 5 antes que cualquier otro.</p>
+      <div class="table-wrap"><table>
+        <tr><th>MCP Server</th><th>Para qué</th><th>Instalación</th></tr>
+        <tr><td>Playwright</td><td>Que Claude navegue tu app, haga click, verifique. El que más cambió el juego — verificación real, no solo código.</td><td><code>claude mcp add playwright -- npx -y @playwright/mcp</code></td></tr>
+        <tr><td>GitHub</td><td>Issues, PRs, releases, files. Claude maneja tu repo sin que copies y pegues URLs.</td><td><code>claude mcp add github -- npx -y @modelcontextprotocol/server-github</code></td></tr>
+        <tr><td>PostgreSQL</td><td>Queries directas a tu DB con read-only por default. Para debugging y análisis ad-hoc.</td><td><code>claude mcp add postgres -- npx -y @modelcontextprotocol/server-postgres</code></td></tr>
+        <tr><td>Figma</td><td>Que Claude lea tus designs reales — frames, componentes, tokens. Game changer para frontend.</td><td><code>claude mcp add figma -- npx -y @figma/mcp-server</code></td></tr>
+        <tr><td>Vercel</td><td>Deploys, env vars, logs de producción. Cuando Claude shipea, también te dice qué pasó.</td><td><code>claude mcp add vercel -- npx -y @vercel/mcp-server</code></td></tr>
+      </table></div>
+      <h4>Verificar el setup</h4>
+      <div class="code-block"><button class="copy-btn" onclick="copyCode(this)" aria-label="Copiar código">copiar</button>
+<span class="cmd">/mcp</span>                    <span class="comment"># lista todos los MCPs activos</span>
+<span class="cmd">claude mcp list</span>         <span class="comment"># desde fuera de Claude Code</span>
+<span class="cmd">claude mcp remove &lt;nombre&gt;</span>  <span class="comment"># si querés desinstalar uno</span></div>
+      <div class="concept-box highlight"><strong>Tip de la doc oficial:</strong> los MCP servers se instalan a nivel <strong>user</strong> (todos tus proyectos) o <strong>project</strong> (un solo repo). Para servers que dependen de credenciales del proyecto (DB de prod, Figma de un cliente), instalá a nivel project con <code style="font-size:11px;color:var(--accent)">--scope project</code>.</div>
+      <div class="tip">Para descubrir nuevos MCPs hay tres lugares: <strong>marketplace oficial</strong> (<code style="font-size:11px;color:var(--accent)">/plugin list</code>), <strong>claudemarketplaces.com</strong> (directorio comunitario), y <strong>github.com/anthropics/claude-plugins-official</strong>.</div>
     </div></div>
   </div>
 </div>
@@ -1009,7 +1302,7 @@ Haceme un análisis de inversión
 // ── STATE ──
 let currentFilter = 'all';
 let favorites = JSON.parse(localStorage.getItem('guia-favs') || '{}');
-const tabSections = ['inicio','fundamentos','web','marketing','agentes','productividad','referencia'];
+const tabSections = ['inicio','novedades','fundamentos','web','marketing','agentes','productividad','referencia'];
 
 // ── INIT ──
 document.addEventListener('DOMContentLoaded', () => {
@@ -1271,6 +1564,52 @@ document.getElementById('author-link').addEventListener('click', e => {
   const user = prompt('Actualizar usuario de GitHub (sin @):', 'davidtaranto96');
   if (user && user.trim()) { e.preventDefault(); setAuthor(user.trim()); }
 });
+
+// ── SCROLL REVEAL (IntersectionObserver) ──
+(function(){
+  if (!('IntersectionObserver' in window)) {
+    document.querySelectorAll('.reveal').forEach(el => el.classList.add('in'));
+    return;
+  }
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('in');
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+})();
+
+// ── DEEP-LINK SUPPORT (#novedades, etc.) ──
+(function(){
+  const hash = window.location.hash.replace('#','');
+  if (hash && tabSections.includes(hash)) {
+    showSection(hash);
+  }
+})();
+
+// ── ARIA improvements (programmatic) ──
+document.querySelectorAll('.acc-header').forEach(h => {
+  h.setAttribute('role','button');
+  h.setAttribute('tabindex','0');
+  h.setAttribute('aria-expanded','false');
+  h.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); h.click(); }
+  });
+});
+const observeAcc = new MutationObserver((mut) => {
+  mut.forEach(m => {
+    if (m.type === 'attributes' && m.attributeName === 'class') {
+      const acc = m.target;
+      const header = acc.querySelector('.acc-header');
+      if (header) header.setAttribute('aria-expanded', acc.classList.contains('open') ? 'true' : 'false');
+    }
+  });
+});
+document.querySelectorAll('.accordion').forEach(a => observeAcc.observe(a, { attributes: true }));
+document.querySelectorAll('.accordion.open .acc-header').forEach(h => h.setAttribute('aria-expanded','true'));
 </script>
 </body>
 </html>

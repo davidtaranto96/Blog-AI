@@ -17,15 +17,16 @@ El proyecto cubre todo lo que necesitas saber sobre **Claude** (de Anthropic): c
 
 ## Contenido del blog
 
-El blog esta organizado en **6 modulos tematicos**:
+El blog esta organizado en **7 secciones**:
 
-| # | Modulo | Descripcion |
-|---|--------|-------------|
+| # | Seccion | Descripcion |
+|---|---------|-------------|
+| 0 | **Novedades · Mayo 2026** | Opus 4.7, Memory en Managed Agents, Plugins marketplace, Files API, Code Execution, MCP connector — todo lo que salio el ultimo mes |
 | 1 | **Fundamentos** | Que es Claude, modos de uso (Chat, Cowork, Claude Code) y conceptos clave |
 | 2 | **Diseno Web** | Como usar Claude para crear interfaces, webs y proyectos visuales |
 | 3 | **Marketing y Contenido** | Prompts para copywriting, redes sociales, emails y estrategias |
-| 4 | **Agentes y Automatizacion** | WhatsApp AgentKit, control remoto de PC, agentes en la nube 24/7 |
-| 5 | **Productividad** | Obsidian como memoria, Skill Seekers, Cowork y skills propios |
+| 4 | **Agentes y Automatizacion** | WhatsApp AgentKit, control remoto de PC, agentes en la nube 24/7, agentes con memoria |
+| 5 | **Productividad** | Obsidian como memoria, Skill Seekers, MCP servers curados y skills propios |
 | 6 | **Referencia** | Tabla completa de comandos, instalaciones y prompts listos para copiar |
 
 ---
