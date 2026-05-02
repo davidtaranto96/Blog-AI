@@ -1601,6 +1601,18 @@ document.querySelectorAll('.acc-header').forEach(h => {
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); h.click(); }
   });
 });
+
+// Copy buttons — add aria-label for screen readers
+document.querySelectorAll('.copy-btn').forEach(b => {
+  if (!b.getAttribute('aria-label')) b.setAttribute('aria-label','Copiar código al portapapeles');
+});
+document.querySelectorAll('.prompt-copy').forEach(b => {
+  if (!b.getAttribute('aria-label')) b.setAttribute('aria-label','Copiar prompt al portapapeles');
+});
+// Favorites buttons — describe action
+document.querySelectorAll('.acc-fav,.fav-btn').forEach(b => {
+  if (!b.getAttribute('aria-label')) b.setAttribute('aria-label','Marcar como favorito');
+});
 const observeAcc = new MutationObserver((mut) => {
   mut.forEach(m => {
     if (m.type === 'attributes' && m.attributeName === 'class') {
