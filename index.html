@@ -32,12 +32,12 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .author-badge{display:inline-flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--border2);border-radius:100px;padding:6px 14px 6px 6px;font-size:12px;color:var(--text2);font-family:'DM Mono',monospace;cursor:pointer;text-decoration:none;transition:border-color .2s,color .2s;}
 .author-badge:hover{border-color:var(--accent2);color:var(--text);}
 .author-avatar{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent4));display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#fff;}
-h1{font-family:'DM Serif Display',serif;font-size:clamp(40px,7vw,78px);line-height:1.05;letter-spacing:-.02em;margin-bottom:18px;}
+h1{font-family:'DM Serif Display',serif;font-size:clamp(40px,7vw,78px);line-height:1.05;letter-spacing:-.02em;margin-bottom:18px;text-wrap:balance;}
 h1 em{font-style:italic;color:var(--accent);}
 .hero-sub{color:var(--text2);font-size:17px;max-width:600px;margin-bottom:36px;font-weight:300;}
 .hero-stats{display:flex;gap:36px;flex-wrap:wrap;}
 .stat{display:flex;flex-direction:column;gap:2px;}
-.stat-num{font-family:'DM Mono',monospace;font-size:26px;color:var(--accent);font-weight:500;}
+.stat-num{font-family:'DM Mono',monospace;font-size:26px;color:var(--accent);font-weight:500;font-variant-numeric:tabular-nums;}
 .stat-label{font-size:11px;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;}
 
 /* ── TOOLBAR ── */
@@ -70,7 +70,7 @@ h1 em{font-style:italic;color:var(--accent);}
 .section.active{display:block;}
 .section-header{margin-bottom:40px;padding-bottom:24px;border-bottom:1px solid var(--border);}
 .eyebrow{font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px;}
-.section-header h2{font-family:'DM Serif Display',serif;font-size:clamp(26px,4vw,40px);line-height:1.1;letter-spacing:-.01em;}
+.section-header h2{font-family:'DM Serif Display',serif;font-size:clamp(26px,4vw,40px);line-height:1.1;letter-spacing:-.01em;text-wrap:balance;}
 .section-header p{color:var(--text2);margin-top:10px;max-width:640px;font-size:15px;}
 
 /* ── CARDS ── */
@@ -103,7 +103,7 @@ h1 em{font-style:italic;color:var(--accent);}
 .acc-header:hover{background:var(--bg3);}
 .acc-title{display:flex;align-items:center;gap:12px;flex:1;min-width:0;}
 .acc-num{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);min-width:26px;flex-shrink:0;}
-.acc-label{font-size:14px;font-weight:500;white-space:normal;}
+.acc-label{font-size:14px;font-weight:500;white-space:normal;text-wrap:pretty;}
 .acc-actions{display:flex;align-items:center;gap:6px;flex-shrink:0;}
 .acc-fav{background:none;border:none;cursor:pointer;font-size:15px;opacity:.35;transition:opacity .2s,transform .15s;padding:3px;line-height:1;}
 .acc-fav:hover{opacity:.8;}
